@@ -1,5 +1,6 @@
 pub mod easing;
 pub mod grease;
+pub mod types;
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 
