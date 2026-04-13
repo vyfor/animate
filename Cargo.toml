@@ -1,2 +1,3 @@
 [workspace]
-members = ["grease-core"]
+members = ["grease-core", "grease-macros"]
+resolver = "2"
