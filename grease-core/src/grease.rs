@@ -13,13 +13,14 @@ where
     started_at: Cell<Option<Instant>>,
     last_frame: Cell<usize>,
     duration: f64,
+    easing: fn(f64) -> f64,
 }
 
 impl<T> Grease<T>
 where
     T: Lerp + PartialEq + Copy,
 {
-    pub fn new(initial: T, duration: f64) -> Self {
+    pub fn new(initial: T, duration: f64, easing: fn(f64) -> f64) -> Self {
         Self {
             current: Cell::new(initial),
             start: Cell::new(initial),
@@ -27,6 +28,7 @@ where
             started_at: Cell::new(None),
             last_frame: Cell::new(0),
             duration,
+            easing,
         }
     }
 
@@ -49,8 +51,7 @@ where
 
         let elapsed = started.elapsed().as_secs_f64() * 1000.0;
         let t = (elapsed / self.duration).clamp(0.0, 1.0);
-        // todo: apply easing
-        let interp = T::lerp(&self.start.get(), &self.end.get(), t);
+        let interp = T::lerp(&self.start.get(), &self.end.get(), (self.easing)(t));
 
         self.current.set(interp);
 
