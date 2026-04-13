@@ -62,4 +62,8 @@ where
 
         self.current.get()
     }
+
+    pub fn end(&self) -> T {
+        self.end.get()
+    }
 }
