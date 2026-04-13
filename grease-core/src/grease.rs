@@ -9,7 +9,7 @@ where
 {
     current: Cell<T>,
     start: Cell<T>,
-    end: Cell<T>,
+    target: Cell<T>,
     started_at: Cell<Option<Instant>>,
     last_frame: Cell<usize>,
     duration: f64,
@@ -24,7 +24,7 @@ where
         Self {
             current: Cell::new(initial),
             start: Cell::new(initial),
-            end: Cell::new(initial),
+            target: Cell::new(initial),
             started_at: Cell::new(None),
             last_frame: Cell::new(0),
             duration,
@@ -34,7 +34,7 @@ where
 
     pub fn set(&mut self, target: T) {
         self.start.set(self.get());
-        self.end.set(target);
+        self.target.set(target);
         self.started_at.set(Some(Instant::now()));
     }
 
@@ -51,7 +51,7 @@ where
 
         let elapsed = started.elapsed().as_secs_f64() * 1000.0;
         let t = (elapsed / self.duration).clamp(0.0, 1.0);
-        let interp = T::lerp(&self.start.get(), &self.end.get(), (self.easing)(t));
+        let interp = T::lerp(&self.start.get(), &self.target.get(), (self.easing)(t));
 
         self.current.set(interp);
         self.last_frame.set(frame);
@@ -63,7 +63,7 @@ where
         self.current.get()
     }
 
-    pub fn end(&self) -> T {
-        self.end.get()
+    pub fn target(&self) -> T {
+        self.target.get()
     }
 }
