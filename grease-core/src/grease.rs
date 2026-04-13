@@ -1,5 +1,6 @@
-use crate::Lerp;
+use crate::{FRAME, Lerp};
 use std::cell::Cell;
+use std::sync::atomic::Ordering;
 use std::time::Instant;
 
 pub struct Grease<T>
@@ -10,6 +11,7 @@ where
     start: Cell<T>,
     end: Cell<T>,
     started_at: Cell<Option<Instant>>,
+    last_frame: Cell<usize>,
     duration: f64,
 }
 
@@ -23,6 +25,7 @@ where
             start: Cell::new(initial),
             end: Cell::new(initial),
             started_at: Cell::new(None),
+            last_frame: Cell::new(0),
             duration,
         }
     }
@@ -34,17 +37,25 @@ where
     }
 
     pub fn get(&self) -> T {
-        if let Some(started) = self.started_at.get() {
-            let elapsed = started.elapsed().as_secs_f64() * 1000.0;
-            let t = (elapsed / self.duration).clamp(0.0, 1.0);
-            // todo: apply easing
-            let interp = T::lerp(&self.start.get(), &self.end.get(), t);
+        let frame = FRAME.load(Ordering::Relaxed);
+        if self.last_frame.get() == frame {
+            return self.current.get();
+        }
 
-            self.current.set(interp);
+        let started = match self.started_at.get() {
+            Some(t) => t,
+            None => return self.current.get(),
+        };
 
-            if t >= 1.0 {
-                self.started_at.set(None);
-            }
+        let elapsed = started.elapsed().as_secs_f64() * 1000.0;
+        let t = (elapsed / self.duration).clamp(0.0, 1.0);
+        // todo: apply easing
+        let interp = T::lerp(&self.start.get(), &self.end.get(), t);
+
+        self.current.set(interp);
+
+        if t >= 1.0 {
+            self.started_at.set(None);
         }
 
         self.current.get()
