@@ -54,6 +54,7 @@ where
         let interp = T::lerp(&self.start.get(), &self.end.get(), (self.easing)(t));
 
         self.current.set(interp);
+        self.last_frame.set(frame);
 
         if t >= 1.0 {
             self.started_at.set(None);
