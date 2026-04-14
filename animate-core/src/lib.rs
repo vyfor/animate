@@ -60,6 +60,7 @@ pub trait Lerp {
 
 pub fn tick() {
     FRAME.fetch_add(1, Ordering::Relaxed);
+    IS_ANIMATING.store(false, Ordering::Relaxed);
 }
 
 pub fn is_animating() -> bool {
