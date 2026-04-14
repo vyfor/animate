@@ -1,6 +1,6 @@
-# animate
+# 🎞️ animate
 
-Animation library for Rust.
+Animation Library for Rust.
 
 ## Disclaimer
 
