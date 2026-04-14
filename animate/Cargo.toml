@@ -10,8 +10,8 @@ repository = "https://github.com/vyfor/animate"
 version = "0.1.0"
 
 [dependencies]
-animate-core = { path = "../animate-core", package = "animate-core" }
-animate-macros = { path = "../animate-macros", package = "animate-macros" }
+animate-core = { path = "../animate-core", package = "animate-core", version = "0.1.0" }
+animate-macros = { path = "../animate-macros", package = "animate-macros", version = "0.1.0" }
 
 [dev-dependencies]
 ratatui = "0.30"
