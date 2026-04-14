@@ -5,7 +5,7 @@ use quote::quote;
 use syn::{DeriveInput, Type, parse_macro_input};
 
 #[derive(Debug, FromField)]
-#[darling(attributes(grease))]
+#[darling(attributes(once, cycle, alternate))]
 struct GreaseField {
     ident: Option<syn::Ident>,
     ty: Type,
@@ -54,18 +54,54 @@ fn process(input: DeriveInput) -> syn::Result<TokenStream2> {
         .collect::<darling::Result<_>>()
         .map_err(|e| syn::Error::new(proc_macro2::Span::call_site(), e))?;
 
+    for (raw, gf) in fields.iter().zip(grease_fields.iter()) {
+        let is_once = raw.attrs.iter().any(|a| a.path().is_ident("once"));
+        let is_alt = raw.attrs.iter().any(|a| a.path().is_ident("alternate"));
+
+        if (is_once || is_alt) && gf.duration.is_none() {
+            return Err(syn::Error::new_spanned(
+                raw,
+                "duration is required for #[once], #[alternate]",
+            ));
+        }
+    }
+
     let final_fields = fields.iter().zip(grease_fields.iter()).map(|(raw, gf)| {
         let name = gf.ident.as_ref().unwrap();
         let ty = &gf.ty;
         let field_vis = &raw.vis;
+
+        let grease_attr = raw.attrs.iter().find(|a| {
+            ["once", "cycle", "alternate"]
+                .iter()
+                .any(|attr| a.path().is_ident(attr))
+        });
+
+        let mode = grease_attr.map(|a| {
+            let path = a.path();
+            if path.is_ident("once") {
+                quote!(Once)
+            } else if path.is_ident("cycle") {
+                quote!(Cycle)
+            } else if path.is_ident("alternate") {
+                quote!(Alternate)
+            } else {
+                unreachable!()
+            }
+        });
+
         let attrs: Vec<_> = raw
             .attrs
             .iter()
-            .filter(|a| !a.path().is_ident("grease"))
+            .filter(|a| {
+                !["once", "cycle", "alternate"]
+                    .iter()
+                    .any(|attr| a.path().is_ident(attr))
+            })
             .collect();
 
-        if gf.duration.is_some() {
-            quote! { #(#attrs)* #field_vis #name: grease::Grease<#ty> }
+        if let Some(mode) = mode {
+            quote! { #(#attrs)* #field_vis #name: grease::#mode<#ty> }
         } else {
             quote! { #(#attrs)* #field_vis #name: #ty }
         }
@@ -74,22 +110,33 @@ fn process(input: DeriveInput) -> syn::Result<TokenStream2> {
     let mut params = Vec::new();
     let mut inits = Vec::new();
 
-    for (_, gf) in fields.iter().zip(grease_fields.iter()) {
+    for (raw, gf) in fields.iter().zip(grease_fields.iter()) {
         let name = gf.ident.as_ref().unwrap();
         let ty = &gf.ty;
         params.push(quote! { #name: #ty });
 
-        match gf.duration {
-            Some(duration) => {
-                let duration = duration as f64;
-                let easing = easing_path(gf.easing.as_ref());
-                let interp = interp_path(ty, gf.interp.as_ref());
-
-                inits.push(
-                    quote! { #name: grease::Grease::new(#name, #duration, #easing, #interp) },
-                );
+        let mode = raw.attrs.iter().find_map(|a| {
+            let p = a.path();
+            if p.is_ident("once") {
+                Some(quote!(Once))
+            } else if p.is_ident("cycle") {
+                Some(quote!(Cycle))
+            } else if p.is_ident("alternate") {
+                Some(quote!(Alternate))
+            } else {
+                None
             }
-            None => inits.push(quote! { #name }),
+        });
+
+        if let Some(mode) = mode {
+            let duration = gf.duration.unwrap_or(0) as f64;
+            let easing = easing_path(gf.easing.as_ref());
+            let interp = interp_path(ty, gf.interp.as_ref());
+            inits.push(quote! {
+                #name: grease::#mode::new(#name, #duration, #easing, #interp)
+            });
+        } else {
+            inits.push(quote! { #name });
         }
     }
 
