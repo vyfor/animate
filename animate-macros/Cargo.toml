@@ -1,7 +1,13 @@
 [package]
-name = "animate-macros"
-version = "0.1.0"
+authors = ["vyfor"]
+categories = ["command-line-interface"]
+description = "Animation library for Ratatui"
 edition = "2024"
+keywords = ["terminal", "tui", "cli", "animation", "ratatui"]
+license = "MIT"
+name = "animate-macros"
+repository = "https://github.com/vyfor/animate"
+version = "0.1.0"
 
 [lib]
 proc-macro = true
