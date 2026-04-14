@@ -1,5 +1,6 @@
 use crate::{FRAME, Lerp};
 use std::cell::UnsafeCell;
+use std::ops::Deref;
 use std::sync::atomic::Ordering;
 use std::time::Instant;
 
@@ -73,5 +74,16 @@ where
                 &*self.target.get()
             }
         }
+    }
+}
+
+impl<T> Deref for Grease<T>
+where
+    T: Lerp + PartialEq + Default,
+{
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        self.get()
     }
 }
