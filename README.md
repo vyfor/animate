@@ -2,6 +2,8 @@
 
 Animation Library for Rust.
 
+![Demo](./.github/assets/demo.gif)
+
 ## Disclaimer
 
 Using `animate` in multithreaded environments will likely cause undefined behavior. The library is designed around the assumption that render loops run on a single thread, the inverse is not supported (yet).
