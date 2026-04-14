@@ -2,7 +2,7 @@ use darling::FromField;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, Type};
+use syn::{DeriveInput, Type, parse_macro_input};
 
 #[derive(Debug, FromField)]
 #[darling(attributes(grease))]
@@ -18,7 +18,9 @@ struct GreaseField {
 #[proc_macro_attribute]
 pub fn grease(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as DeriveInput);
-    process(input).unwrap().into()
+    process(input)
+        .unwrap_or_else(|e| e.to_compile_error())
+        .into()
 }
 
 fn process(input: DeriveInput) -> syn::Result<TokenStream2> {
@@ -29,15 +31,26 @@ fn process(input: DeriveInput) -> syn::Result<TokenStream2> {
     let fields = match &input.data {
         syn::Data::Struct(s) => match &s.fields {
             syn::Fields::Named(f) => &f.named,
-            _ => panic!(),
+            _ => {
+                return Err(syn::Error::new_spanned(
+                    struct_name,
+                    "#[grease] only supports named field structs",
+                ));
+            }
         },
-        _ => panic!(),
+        _ => {
+            return Err(syn::Error::new_spanned(
+                struct_name,
+                "#[grease] only supports structs",
+            ));
+        }
     };
 
     let grease_fields: Vec<GreaseField> = fields
         .iter()
         .map(GreaseField::from_field)
-        .collect::<darling::Result<_>>()?;
+        .collect::<darling::Result<_>>()
+        .map_err(|e| syn::Error::new(proc_macro2::Span::call_site(), e))?;
 
     let final_fields = fields.iter().zip(grease_fields.iter()).map(|(raw, gf)| {
         let name = gf.ident.as_ref().unwrap();
