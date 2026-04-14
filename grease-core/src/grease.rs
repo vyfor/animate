@@ -16,13 +16,19 @@ where
     last_frame: UnsafeCell<usize>,
     duration: f64,
     easing: fn(f64) -> f64,
+    interp: fn(&T, &T, f64) -> T,
 }
 
 impl<T> Grease<T>
 where
     T: Lerp + PartialEq + Default,
 {
-    pub fn new(initial: T, duration: f64, easing: fn(f64) -> f64) -> Self {
+    pub fn new(
+        initial: T,
+        duration: f64,
+        easing: fn(f64) -> f64,
+        interp: fn(&T, &T, f64) -> T,
+    ) -> Self {
         Self {
             current: UnsafeCell::new(initial),
             start: UnsafeCell::new(T::default()),
@@ -31,6 +37,7 @@ where
             last_frame: UnsafeCell::new(0),
             duration,
             easing,
+            interp,
         }
     }
 
@@ -52,7 +59,8 @@ where
                 if let Some(started) = *started_at_ptr {
                     let elapsed = started.elapsed().as_secs_f64() * 1000.0;
                     let t = (elapsed / self.duration).clamp(0.0, 1.0);
-                    let interp = T::lerp(&*self.start.get(), &*self.target.get(), (self.easing)(t));
+                    let interp =
+                        (self.interp)(&*self.start.get(), &*self.target.get(), (self.easing)(t));
 
                     *self.current.get() = interp;
                     *last_frame_ptr = frame;

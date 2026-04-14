@@ -13,6 +13,8 @@ struct GreaseField {
     duration: Option<u64>,
     #[darling(default)]
     easing: Option<syn::Path>,
+    #[darling(default)]
+    interp: Option<syn::Path>,
 }
 
 #[proc_macro_attribute]
@@ -81,7 +83,11 @@ fn process(input: DeriveInput) -> syn::Result<TokenStream2> {
             Some(duration) => {
                 let duration = duration as f64;
                 let easing = easing_path(gf.easing.as_ref());
-                inits.push(quote! { #name: grease::Grease::new(#name, #duration, #easing) });
+                let interp = interp_path(ty, gf.interp.as_ref());
+
+                inits.push(
+                    quote! { #name: grease::Grease::new(#name, #duration, #easing, #interp) },
+                );
             }
             None => inits.push(quote! { #name }),
         }
@@ -107,5 +113,32 @@ fn easing_path(path: Option<&syn::Path>) -> TokenStream2 {
         }
         Some(p) => quote! { #p },
         None => quote! { grease::easing::linear },
+    }
+}
+
+fn interp_path(ty: &syn::Type, path: Option<&syn::Path>) -> TokenStream2 {
+    match path {
+        Some(p) if p.leading_colon.is_none() && p.segments.len() == 1 => {
+            let module = type_to_module(ty);
+            quote! { grease::types::#module::#p }
+        }
+        Some(p) => quote! { #p },
+        None => quote! { <#ty as grease::Lerp>::lerp },
+    }
+}
+
+fn type_to_module(ty: &syn::Type) -> syn::Ident {
+    match ty {
+        syn::Type::Path(tp) => {
+            let name = tp.path.segments.last().unwrap().ident.to_string();
+            let module = match name.as_str() {
+                "String" => "string",
+                "f64" | "f32" | "usize" | "isize" | "u64" | "i64" | "u32" | "i32" | "u16"
+                | "i16" | "u8" | "i8" => "num",
+                _ => Box::leak(name.to_lowercase().into_boxed_str()),
+            };
+            syn::Ident::new(module, proc_macro2::Span::call_site())
+        }
+        _ => syn::Ident::new("unknown", proc_macro2::Span::call_site()),
     }
 }
