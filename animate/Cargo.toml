@@ -10,3 +10,7 @@ animate-macros = { path = "../animate-macros", package = "animate-macros" }
 [dev-dependencies]
 ratatui = "0.30"
 crossterm = "0.29"
+
+[features]
+default = []
+ratatui = ["animate-core/ratatui"]

@@ -1,3 +1,5 @@
+#![cfg(feature = "ratatui")]
+
 use crate::Lerp;
 use ratatui::style::Color;
 
