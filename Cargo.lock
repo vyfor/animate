@@ -404,7 +404,15 @@ name = "grease"
 version = "0.1.0"
 dependencies = [
  "crossterm",
+ "grease-core",
  "grease-macros",
+ "ratatui",
+]
+
+[[package]]
+name = "grease-core"
+version = "0.1.0"
+dependencies = [
  "ratatui",
 ]
 
