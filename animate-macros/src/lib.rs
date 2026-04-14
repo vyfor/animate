@@ -6,7 +6,7 @@ use syn::{DeriveInput, Type, parse_macro_input};
 
 #[derive(Debug, FromField)]
 #[darling(attributes(once, cycle, alternate))]
-struct GreaseField {
+struct AnimateField {
     ident: Option<syn::Ident>,
     ty: Type,
     #[darling(default)]
@@ -18,7 +18,7 @@ struct GreaseField {
 }
 
 #[proc_macro_attribute]
-pub fn grease(_attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn animate(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as DeriveInput);
     process(input)
         .unwrap_or_else(|e| e.to_compile_error())
@@ -36,25 +36,25 @@ fn process(input: DeriveInput) -> syn::Result<TokenStream2> {
             _ => {
                 return Err(syn::Error::new_spanned(
                     struct_name,
-                    "#[grease] only supports named field structs",
+                    "#[animate] only supports named field structs",
                 ));
             }
         },
         _ => {
             return Err(syn::Error::new_spanned(
                 struct_name,
-                "#[grease] only supports structs",
+                "#[animate] only supports structs",
             ));
         }
     };
 
-    let grease_fields: Vec<GreaseField> = fields
+    let animate_fields: Vec<AnimateField> = fields
         .iter()
-        .map(GreaseField::from_field)
+        .map(AnimateField::from_field)
         .collect::<darling::Result<_>>()
         .map_err(|e| syn::Error::new(proc_macro2::Span::call_site(), e))?;
 
-    for (raw, gf) in fields.iter().zip(grease_fields.iter()) {
+    for (raw, gf) in fields.iter().zip(animate_fields.iter()) {
         let is_once = raw.attrs.iter().any(|a| a.path().is_ident("once"));
         let is_alt = raw.attrs.iter().any(|a| a.path().is_ident("alternate"));
 
@@ -66,18 +66,18 @@ fn process(input: DeriveInput) -> syn::Result<TokenStream2> {
         }
     }
 
-    let final_fields = fields.iter().zip(grease_fields.iter()).map(|(raw, gf)| {
+    let final_fields = fields.iter().zip(animate_fields.iter()).map(|(raw, gf)| {
         let name = gf.ident.as_ref().unwrap();
         let ty = &gf.ty;
         let field_vis = &raw.vis;
 
-        let grease_attr = raw.attrs.iter().find(|a| {
+        let animate_attr = raw.attrs.iter().find(|a| {
             ["once", "cycle", "alternate"]
                 .iter()
                 .any(|attr| a.path().is_ident(attr))
         });
 
-        let mode = grease_attr.map(|a| {
+        let mode = animate_attr.map(|a| {
             let path = a.path();
             if path.is_ident("once") {
                 quote!(Once)
@@ -101,7 +101,7 @@ fn process(input: DeriveInput) -> syn::Result<TokenStream2> {
             .collect();
 
         if let Some(mode) = mode {
-            quote! { #(#attrs)* #field_vis #name: grease::#mode<#ty> }
+            quote! { #(#attrs)* #field_vis #name: animate::#mode<#ty> }
         } else {
             quote! { #(#attrs)* #field_vis #name: #ty }
         }
@@ -110,7 +110,7 @@ fn process(input: DeriveInput) -> syn::Result<TokenStream2> {
     let mut params = Vec::new();
     let mut inits = Vec::new();
 
-    for (raw, gf) in fields.iter().zip(grease_fields.iter()) {
+    for (raw, gf) in fields.iter().zip(animate_fields.iter()) {
         let name = gf.ident.as_ref().unwrap();
         let ty = &gf.ty;
         params.push(quote! { #name: #ty });
@@ -133,7 +133,7 @@ fn process(input: DeriveInput) -> syn::Result<TokenStream2> {
             let easing = easing_path(gf.easing.as_ref());
             let interp = interp_path(ty, gf.interp.as_ref());
             inits.push(quote! {
-                #name: grease::#mode::new(#name, #duration, #easing, #interp)
+                #name: animate::#mode::new(#name, #duration, #easing, #interp)
             });
         } else {
             inits.push(quote! { #name });
@@ -156,10 +156,10 @@ fn process(input: DeriveInput) -> syn::Result<TokenStream2> {
 fn easing_path(path: Option<&syn::Path>) -> TokenStream2 {
     match path {
         Some(p) if p.leading_colon.is_none() && p.segments.len() == 1 => {
-            quote! { grease::easing::#p }
+            quote! { animate::easing::#p }
         }
         Some(p) => quote! { #p },
-        None => quote! { grease::easing::linear },
+        None => quote! { animate::easing::linear },
     }
 }
 
@@ -167,10 +167,10 @@ fn interp_path(ty: &syn::Type, path: Option<&syn::Path>) -> TokenStream2 {
     match path {
         Some(p) if p.leading_colon.is_none() && p.segments.len() == 1 => {
             let module = type_to_module(ty);
-            quote! { grease::types::#module::#p }
+            quote! { animate::types::#module::#p }
         }
         Some(p) => quote! { #p },
-        None => quote! { <#ty as grease::Lerp>::lerp },
+        None => quote! { <#ty as animate::Lerp>::lerp },
     }
 }
 

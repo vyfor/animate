@@ -18,6 +18,33 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 
 [[package]]
+name = "animate"
+version = "0.1.0"
+dependencies = [
+ "animate-core",
+ "animate-macros",
+ "crossterm",
+ "ratatui",
+]
+
+[[package]]
+name = "animate-core"
+version = "0.1.0"
+dependencies = [
+ "ratatui",
+]
+
+[[package]]
+name = "animate-macros"
+version = "0.1.0"
+dependencies = [
+ "darling",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+]
+
+[[package]]
 name = "anyhow"
 version = "1.0.102"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -397,33 +424,6 @@ dependencies = [
  "r-efi 6.0.0",
  "wasip2",
  "wasip3",
-]
-
-[[package]]
-name = "grease"
-version = "0.1.0"
-dependencies = [
- "crossterm",
- "grease-core",
- "grease-macros",
- "ratatui",
-]
-
-[[package]]
-name = "grease-core"
-version = "0.1.0"
-dependencies = [
- "ratatui",
-]
-
-[[package]]
-name = "grease-macros"
-version = "0.1.0"
-dependencies = [
- "darling",
- "proc-macro2",
- "quote",
- "syn 2.0.117",
 ]
 
 [[package]]

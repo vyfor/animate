@@ -1,19 +1,19 @@
 use crate::macros::impl_ops;
-use crate::{FRAME, GreaseState, IS_ANIMATING, Lerp};
+use crate::{AnimateState, FRAME, IS_ANIMATING, Lerp};
 use std::sync::atomic::Ordering;
 use std::time::Instant;
 
 #[derive(Debug)]
-pub struct Once<T: Lerp + PartialEq>(pub(crate) GreaseState<T>);
+pub struct Cycle<T: Lerp + PartialEq>(pub(crate) AnimateState<T>);
 
-impl<T: Lerp + PartialEq + Default> Once<T> {
+impl<T: Lerp + PartialEq + Default> Cycle<T> {
     pub fn new(
         initial: T,
         duration: f64,
         easing: fn(f64) -> f64,
         interp: fn(&T, &T, f64) -> T,
     ) -> Self {
-        Self(GreaseState::new(initial, duration, easing, interp))
+        Self(AnimateState::new(initial, duration, easing, interp))
     }
 
     pub fn set(&mut self, target: T) {
@@ -31,18 +31,14 @@ impl<T: Lerp + PartialEq + Default> Once<T> {
             if *last_frame != frame {
                 if let Some(started) = *started_at {
                     let elapsed = started.elapsed().as_secs_f64() * 1000.0;
-                    let t = (elapsed / self.0.duration).clamp(0.0, 1.0);
+                    let t = (elapsed % self.0.duration) / self.0.duration;
                     *self.0.current.get() = (self.0.interp)(
                         &*self.0.start.get(),
                         &*self.0.target.get(),
                         (self.0.easing)(t),
                     );
                     *last_frame = frame;
-                    if t >= 1.0 {
-                        *started_at = None;
-                    } else {
-                        IS_ANIMATING.store(true, Ordering::Relaxed);
-                    }
+                    IS_ANIMATING.store(true, Ordering::Relaxed);
                 }
             }
             &*self.0.current.get()
@@ -50,14 +46,8 @@ impl<T: Lerp + PartialEq + Default> Once<T> {
     }
 
     pub fn target(&self) -> &T {
-        unsafe {
-            if (*self.0.started_at.get()).is_none() {
-                &*self.0.current.get()
-            } else {
-                &*self.0.target.get()
-            }
-        }
+        unsafe { &*self.0.target.get() }
     }
 }
 
-impl_ops!(Once);
+impl_ops!(Cycle);

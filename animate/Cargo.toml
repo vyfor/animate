@@ -1,0 +1,12 @@
+[package]
+name = "animate"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+animate-core = { path = "../animate-core", package = "animate-core" }
+animate-macros = { path = "../animate-macros", package = "animate-macros" }
+
+[dev-dependencies]
+ratatui = "0.30"
+crossterm = "0.29"

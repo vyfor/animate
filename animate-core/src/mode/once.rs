@@ -1,19 +1,19 @@
 use crate::macros::impl_ops;
-use crate::{FRAME, GreaseState, IS_ANIMATING, Lerp};
+use crate::{FRAME, AnimateState, IS_ANIMATING, Lerp};
 use std::sync::atomic::Ordering;
 use std::time::Instant;
 
 #[derive(Debug)]
-pub struct Alternate<T: Lerp + PartialEq>(pub(crate) GreaseState<T>);
+pub struct Once<T: Lerp + PartialEq>(pub(crate) AnimateState<T>);
 
-impl<T: Lerp + PartialEq + Default> Alternate<T> {
+impl<T: Lerp + PartialEq + Default> Once<T> {
     pub fn new(
         initial: T,
         duration: f64,
         easing: fn(f64) -> f64,
         interp: fn(&T, &T, f64) -> T,
     ) -> Self {
-        Self(GreaseState::new(initial, duration, easing, interp))
+        Self(AnimateState::new(initial, duration, easing, interp))
     }
 
     pub fn set(&mut self, target: T) {
@@ -31,16 +31,18 @@ impl<T: Lerp + PartialEq + Default> Alternate<T> {
             if *last_frame != frame {
                 if let Some(started) = *started_at {
                     let elapsed = started.elapsed().as_secs_f64() * 1000.0;
-                    let cycle = (elapsed / self.0.duration) as u64;
-                    let t_raw = (elapsed % self.0.duration) / self.0.duration;
-                    let t = if cycle % 2 == 0 { t_raw } else { 1.0 - t_raw };
+                    let t = (elapsed / self.0.duration).clamp(0.0, 1.0);
                     *self.0.current.get() = (self.0.interp)(
                         &*self.0.start.get(),
                         &*self.0.target.get(),
                         (self.0.easing)(t),
                     );
                     *last_frame = frame;
-                    IS_ANIMATING.store(true, Ordering::Relaxed);
+                    if t >= 1.0 {
+                        *started_at = None;
+                    } else {
+                        IS_ANIMATING.store(true, Ordering::Relaxed);
+                    }
                 }
             }
             &*self.0.current.get()
@@ -48,8 +50,14 @@ impl<T: Lerp + PartialEq + Default> Alternate<T> {
     }
 
     pub fn target(&self) -> &T {
-        unsafe { &*self.0.target.get() }
+        unsafe {
+            if (*self.0.started_at.get()).is_none() {
+                &*self.0.current.get()
+            } else {
+                &*self.0.target.get()
+            }
+        }
     }
 }
 
-impl_ops!(Alternate);
+impl_ops!(Once);

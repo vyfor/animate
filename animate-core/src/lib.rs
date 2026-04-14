@@ -15,7 +15,7 @@ pub use mode::*;
 pub static FRAME: AtomicUsize = AtomicUsize::new(0);
 pub static IS_ANIMATING: AtomicBool = AtomicBool::new(false);
 
-pub trait Grease {
+pub trait Animate {
     type Value;
     fn get(&self) -> &Self::Value;
     fn set(&mut self, target: Self::Value);
@@ -23,7 +23,7 @@ pub trait Grease {
 }
 
 #[derive(Debug)]
-pub(crate) struct GreaseState<T> {
+pub(crate) struct AnimateState<T> {
     pub current: UnsafeCell<T>,
     pub start: UnsafeCell<T>,
     pub target: UnsafeCell<T>,
@@ -34,7 +34,7 @@ pub(crate) struct GreaseState<T> {
     pub interp: fn(&T, &T, f64) -> T,
 }
 
-impl<T: Default> GreaseState<T> {
+impl<T: Default> AnimateState<T> {
     pub fn new(
         initial: T,
         duration: f64,
