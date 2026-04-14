@@ -1,4 +1,4 @@
-use crate::{FRAME, Lerp};
+use crate::{FRAME, IS_ANIMATING, Lerp};
 use std::cell::UnsafeCell;
 use std::ops::{Add, AddAssign, Deref, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 use std::sync::atomic::Ordering;
@@ -67,6 +67,8 @@ where
 
                     if t >= 1.0 {
                         *started_at_ptr = None;
+                    } else {
+                        IS_ANIMATING.store(true, Ordering::Relaxed);
                     }
                 }
             }
