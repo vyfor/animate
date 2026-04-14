@@ -1,9 +1,10 @@
 use crate::{FRAME, Lerp};
 use std::cell::UnsafeCell;
-use std::ops::Deref;
+use std::ops::{Add, AddAssign, Deref, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 use std::sync::atomic::Ordering;
 use std::time::Instant;
 
+#[derive(Debug)]
 pub struct Grease<T>
 where
     T: Lerp + PartialEq,
@@ -85,5 +86,55 @@ where
 
     fn deref(&self) -> &Self::Target {
         self.get()
+    }
+}
+
+impl<'a, T> AddAssign<T> for Grease<T>
+where
+    T: Lerp + PartialEq + Default,
+    for<'b> &'b T: Add<T, Output = T>,
+{
+    fn add_assign(&mut self, rhs: T) {
+        let next = self.target() + rhs;
+        self.set(next);
+    }
+}
+
+impl<'a, T> SubAssign<T> for Grease<T>
+where
+    T: Lerp + PartialEq + Default,
+    for<'b> &'b T: Sub<T, Output = T>,
+{
+    fn sub_assign(&mut self, rhs: T) {
+        let next = self.target() - rhs;
+        self.set(next);
+    }
+}
+
+impl<'a, T> MulAssign<T> for Grease<T>
+where
+    T: Lerp + PartialEq + Default,
+    for<'b> &'b T: Mul<T, Output = T>,
+{
+    fn mul_assign(&mut self, rhs: T) {
+        let next = self.target() * rhs;
+        self.set(next);
+    }
+}
+
+impl<'a, T> DivAssign<T> for Grease<T>
+where
+    T: Lerp + PartialEq + Default,
+    for<'b> &'b T: Div<T, Output = T>,
+{
+    fn div_assign(&mut self, rhs: T) {
+        let next = self.target() / rhs;
+        self.set(next);
+    }
+}
+
+impl<T: Lerp + PartialEq + Default + std::fmt::Display> std::fmt::Display for Grease<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.get().fmt(f)
     }
 }
