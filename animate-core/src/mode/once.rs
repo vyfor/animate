@@ -21,47 +21,43 @@ where
 
     pub fn set(&mut self, target: T) {
         let now = FRAME_TIME.load(Ordering::Relaxed);
-        let current = std::mem::take(self.0.current.get_mut());
-        *self.0.start.get_mut() = current;
-        *self.0.target.get_mut() = target;
-        *self.0.started_at.get_mut() = Some(now);
+        let inner = self.0.inner.get_mut();
+        inner.start = std::mem::take(&mut inner.current);
+        inner.target = target;
+        inner.started_at = Some(now);
     }
 
     pub fn get(&self) -> &T {
         let now = FRAME_TIME.load(Ordering::Relaxed);
         unsafe {
-            let last_update = self.0.last_update.get();
-            let started_at = self.0.started_at.get();
-
-            if *last_update != now {
-                if let Some(start_t) = *started_at {
+            let inner = &mut *self.0.inner.get();
+            if inner.last_update != now {
+                if let Some(start_t) = inner.started_at {
                     let elapsed = now.saturating_sub(start_t) as f64;
                     let t = (elapsed / self.0.duration).clamp(0.0, 1.0);
 
-                    *self.0.current.get() = (self.0.interp)(
-                        &*self.0.start.get(),
-                        &*self.0.target.get(),
-                        (self.0.easing)(t),
-                    );
-                    *last_update = now;
+                    inner.current =
+                        (self.0.interp)(&inner.start, &inner.target, (self.0.easing)(t));
+                    inner.last_update = now;
 
                     if t >= 1.0 {
-                        *started_at = None;
+                        inner.started_at = None;
                     } else {
                         IS_ANIMATING.store(true, Ordering::Relaxed);
                     }
                 }
             }
-            &*self.0.current.get()
+            &inner.current
         }
     }
 
     pub fn target(&self) -> &T {
         unsafe {
-            if (*self.0.started_at.get()).is_none() {
-                &*self.0.current.get()
+            let inner = &*self.0.inner.get();
+            if inner.started_at.is_none() {
+                &inner.current
             } else {
-                &*self.0.target.get()
+                &inner.target
             }
         }
     }

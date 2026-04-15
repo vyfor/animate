@@ -21,17 +21,22 @@ pub trait Animate {
     fn target(&self) -> &Self::Value;
 }
 
+#[derive(Debug, Default)]
+pub(crate) struct StateInner<T> {
+    pub current: T,
+    pub start: T,
+    pub target: T,
+    pub started_at: Option<usize>,
+    pub last_update: usize,
+}
+
 #[derive(Debug)]
 pub(crate) struct AnimateState<T, E, I>
 where
     E: Fn(f64) -> f64,
     I: Fn(&T, &T, f64) -> T,
 {
-    pub current: UnsafeCell<T>,
-    pub start: UnsafeCell<T>,
-    pub target: UnsafeCell<T>,
-    pub started_at: UnsafeCell<Option<usize>>,
-    pub last_update: UnsafeCell<usize>,
+    pub inner: UnsafeCell<StateInner<T>>,
     pub duration: f64,
     pub easing: E,
     pub interp: I,
@@ -44,12 +49,14 @@ where
 {
     pub fn new(initial: T, duration: f64, easing: E, interp: I) -> Self {
         Self {
-            current: UnsafeCell::new(initial),
-            start: UnsafeCell::new(Default::default()),
-            target: UnsafeCell::new(Default::default()),
-            started_at: UnsafeCell::new(None),
-            last_update: UnsafeCell::new(0),
-            duration,
+            inner: UnsafeCell::new(StateInner {
+                current: initial,
+                start: Default::default(),
+                target: Default::default(),
+                started_at: None,
+                last_update: 0,
+            }),
+            duration: duration.max(f64::MIN_POSITIVE),
             easing,
             interp,
         }
