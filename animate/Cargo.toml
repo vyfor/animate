@@ -16,7 +16,12 @@ animate-macros = { path = "../animate-macros", package = "animate-macros", versi
 [dev-dependencies]
 ratatui = "0.30"
 crossterm = "0.29"
+criterion = "0.8"
 
 [features]
 default = []
 ratatui = ["animate-core/ratatui"]
+
+[[bench]]
+name = "animate"
+harness = false
