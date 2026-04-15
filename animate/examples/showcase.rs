@@ -439,7 +439,7 @@ mod enabled {
 
         ratatui::run(|terminal| {
             for _ in 0..600 {
-                animate::tick();
+                animate::tick(16);
                 app.update();
                 terminal.draw(|f| app.draw(f)).unwrap();
                 std::thread::sleep(frame_time);

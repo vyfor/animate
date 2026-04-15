@@ -6,13 +6,12 @@ pub mod types;
 use std::{
     cell::UnsafeCell,
     sync::atomic::{AtomicBool, AtomicUsize, Ordering},
-    time::Instant,
 };
 
 pub use easing::*;
 pub use mode::*;
 
-pub static FRAME: AtomicUsize = AtomicUsize::new(0);
+pub static FRAME_TIME: AtomicUsize = AtomicUsize::new(0);
 pub static IS_ANIMATING: AtomicBool = AtomicBool::new(false);
 
 pub trait Animate {
@@ -27,8 +26,8 @@ pub(crate) struct AnimateState<T> {
     pub current: UnsafeCell<T>,
     pub start: UnsafeCell<T>,
     pub target: UnsafeCell<T>,
-    pub started_at: UnsafeCell<Option<Instant>>,
-    pub last_frame: UnsafeCell<usize>,
+    pub started_at: UnsafeCell<Option<usize>>,
+    pub last_update: UnsafeCell<usize>,
     pub duration: f64,
     pub easing: fn(f64) -> f64,
     pub interp: fn(&T, &T, f64) -> T,
@@ -46,7 +45,7 @@ impl<T: Default> AnimateState<T> {
             start: UnsafeCell::new(Default::default()),
             target: UnsafeCell::new(Default::default()),
             started_at: UnsafeCell::new(None),
-            last_frame: UnsafeCell::new(0),
+            last_update: UnsafeCell::new(0),
             duration,
             easing,
             interp,
@@ -58,8 +57,9 @@ pub trait Lerp {
     fn lerp(start: &Self, end: &Self, t: f64) -> Self;
 }
 
-pub fn tick() {
-    FRAME.fetch_add(1, Ordering::Relaxed);
+#[inline(always)]
+pub fn tick(delta: usize) {
+    FRAME_TIME.fetch_add(delta, Ordering::Relaxed);
     IS_ANIMATING.store(false, Ordering::Relaxed);
 }
 

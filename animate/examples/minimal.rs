@@ -17,7 +17,7 @@ fn main() -> std::io::Result<()> {
 
     loop {
         // must be called at the start of each frame
-        animate::tick();
+        animate::tick(8);
 
         let v = *c.value;
         if v == 0 {
