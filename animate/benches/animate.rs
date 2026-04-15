@@ -47,9 +47,9 @@ fn bench_cycle_f64(c: &mut Criterion) {
 fn bench_many_fields(c: &mut Criterion) {
     c.bench_function("many_fields_100", |b| {
         b.iter(|| {
-            let mut anims: Vec<Once<f64>> = (0..100)
+            let mut anims = (0..100)
                 .map(|_| Once::new(0.0, 1000.0, easing::linear, f64::lerp))
-                .collect();
+                .collect::<Vec<_>>();
 
             for a in &mut anims {
                 a.set(100.0);

@@ -54,54 +54,27 @@ fn process(input: DeriveInput) -> syn::Result<TokenStream2> {
         .collect::<darling::Result<_>>()
         .map_err(|e| syn::Error::new(proc_macro2::Span::call_site(), e))?;
 
-    for (raw, gf) in fields.iter().zip(animate_fields.iter()) {
-        let is_once = raw.attrs.iter().any(|a| a.path().is_ident("once"));
-        let is_alt = raw.attrs.iter().any(|a| a.path().is_ident("alternate"));
-
-        if (is_once || is_alt) && gf.duration.is_none() {
-            return Err(syn::Error::new_spanned(
-                raw,
-                "duration is required for #[once], #[alternate]",
-            ));
-        }
-    }
-
     let final_fields = fields.iter().zip(animate_fields.iter()).map(|(raw, gf)| {
         let name = gf.ident.as_ref().unwrap();
         let ty = &gf.ty;
         let field_vis = &raw.vis;
 
-        let animate_attr = raw.attrs.iter().find(|a| {
-            ["once", "cycle", "alternate"]
-                .iter()
-                .any(|attr| a.path().is_ident(attr))
+        let mode = raw.attrs.iter().find_map(|a| {
+            let p = a.path();
+            if p.is_ident("once") { Some(quote!(Once)) }
+            else if p.is_ident("cycle") { Some(quote!(Cycle)) }
+            else if p.is_ident("alternate") { Some(quote!(Alternate)) }
+            else { None }
         });
 
-        let mode = animate_attr.map(|a| {
-            let path = a.path();
-            if path.is_ident("once") {
-                quote!(Once)
-            } else if path.is_ident("cycle") {
-                quote!(Cycle)
-            } else if path.is_ident("alternate") {
-                quote!(Alternate)
-            } else {
-                unreachable!()
-            }
-        });
-
-        let attrs: Vec<_> = raw
-            .attrs
-            .iter()
-            .filter(|a| {
-                !["once", "cycle", "alternate"]
-                    .iter()
-                    .any(|attr| a.path().is_ident(attr))
-            })
-            .collect();
+        let attrs: Vec<_> = raw.attrs.iter().filter(|a| {
+            !["once", "cycle", "alternate"].iter().any(|attr| a.path().is_ident(attr))
+        }).collect();
 
         if let Some(mode) = mode {
-            quote! { #(#attrs)* #field_vis #name: animate::#mode<#ty> }
+            quote! { 
+                #(#attrs)* #field_vis #name: animate::#mode<#ty, fn(f64) -> f64, fn(&#ty, &#ty, f64) -> #ty> 
+            }
         } else {
             quote! { #(#attrs)* #field_vis #name: #ty }
         }

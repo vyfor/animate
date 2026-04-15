@@ -3,15 +3,19 @@ use crate::{AnimateState, FRAME_TIME, IS_ANIMATING, Lerp};
 use std::sync::atomic::Ordering;
 
 #[derive(Debug)]
-pub struct Cycle<T: Lerp + PartialEq>(pub(crate) AnimateState<T>);
+pub struct Cycle<T, E, I>(pub(crate) AnimateState<T, E, I>)
+where
+    T: Lerp + PartialEq,
+    E: Fn(f64) -> f64,
+    I: Fn(&T, &T, f64) -> T;
 
-impl<T: Lerp + PartialEq + Default> Cycle<T> {
-    pub fn new(
-        initial: T,
-        duration: f64,
-        easing: fn(f64) -> f64,
-        interp: fn(&T, &T, f64) -> T,
-    ) -> Self {
+impl<T, E, I> Cycle<T, E, I>
+where
+    T: Lerp + PartialEq + Default,
+    E: Fn(f64) -> f64,
+    I: Fn(&T, &T, f64) -> T,
+{
+    pub fn new(initial: T, duration: f64, easing: E, interp: I) -> Self {
         Self(AnimateState::new(initial, duration, easing, interp))
     }
 
@@ -31,14 +35,16 @@ impl<T: Lerp + PartialEq + Default> Cycle<T> {
 
             if *last_update != now {
                 if let Some(start_t) = *started_at {
-                    let elapsed = (now - start_t) as f64;
-                    let t = (elapsed % self.0.duration) / self.0.duration;
+                    let elapsed = now.saturating_sub(start_t) as f64;
+                    if self.0.duration > 0.0 {
+                        let t = (elapsed % self.0.duration) / self.0.duration;
 
-                    *self.0.current.get() = (self.0.interp)(
-                        &*self.0.start.get(),
-                        &*self.0.target.get(),
-                        (self.0.easing)(t),
-                    );
+                        *self.0.current.get() = (self.0.interp)(
+                            &*self.0.start.get(),
+                            &*self.0.target.get(),
+                            (self.0.easing)(t),
+                        );
+                    }
                     *last_update = now;
                     IS_ANIMATING.store(true, Ordering::Relaxed);
                 }

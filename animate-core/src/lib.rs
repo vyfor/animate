@@ -22,24 +22,27 @@ pub trait Animate {
 }
 
 #[derive(Debug)]
-pub(crate) struct AnimateState<T> {
+pub(crate) struct AnimateState<T, E, I>
+where
+    E: Fn(f64) -> f64,
+    I: Fn(&T, &T, f64) -> T,
+{
     pub current: UnsafeCell<T>,
     pub start: UnsafeCell<T>,
     pub target: UnsafeCell<T>,
     pub started_at: UnsafeCell<Option<usize>>,
     pub last_update: UnsafeCell<usize>,
     pub duration: f64,
-    pub easing: fn(f64) -> f64,
-    pub interp: fn(&T, &T, f64) -> T,
+    pub easing: E,
+    pub interp: I,
 }
 
-impl<T: Default> AnimateState<T> {
-    pub fn new(
-        initial: T,
-        duration: f64,
-        easing: fn(f64) -> f64,
-        interp: fn(&T, &T, f64) -> T,
-    ) -> Self {
+impl<T: Default, E, I> AnimateState<T, E, I>
+where
+    E: Fn(f64) -> f64,
+    I: Fn(&T, &T, f64) -> T,
+{
+    pub fn new(initial: T, duration: f64, easing: E, interp: I) -> Self {
         Self {
             current: UnsafeCell::new(initial),
             start: UnsafeCell::new(Default::default()),
