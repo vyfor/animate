@@ -34,7 +34,7 @@ checksum = "4b46cbb362ab8752921c97e041f5e366ee6297bd428a31275b9fcf1e380f7299"
 
 [[package]]
 name = "animate"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "animate-core",
  "animate-macros",
@@ -45,14 +45,14 @@ dependencies = [
 
 [[package]]
 name = "animate-core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "ratatui",
 ]
 
 [[package]]
 name = "animate-macros"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "darling",
  "proc-macro2",

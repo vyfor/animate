@@ -7,11 +7,11 @@ keywords = ["terminal", "tui", "cli", "animation", "ratatui"]
 license = "MIT"
 name = "animate"
 repository = "https://github.com/vyfor/animate"
-version = "0.1.0"
+version = "0.2.0"
 
 [dependencies]
-animate-core = { path = "../animate-core", package = "animate-core", version = "0.1.0" }
-animate-macros = { path = "../animate-macros", package = "animate-macros", version = "0.1.0" }
+animate-core = { path = "../animate-core", package = "animate-core", version = "0.2.0" }
+animate-macros = { path = "../animate-macros", package = "animate-macros", version = "0.2.0" }
 
 [dev-dependencies]
 ratatui = "0.30"
