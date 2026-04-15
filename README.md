@@ -4,10 +4,6 @@ Animation Library for Rust.
 
 ![Demo](./.github/assets/demo.gif)
 
-## Disclaimer
-
-Using `animate` in multithreaded environments will likely cause undefined behavior. The library is designed around the assumption that render loops run on a single thread, the inverse is not supported (yet).
-
 ## Features
 
 - **Lightweight**: Zero dependencies by default.
@@ -33,24 +29,50 @@ pub struct MyWidget {
     #[once(duration = 300)]
     progress: f64,
 
-    #[cycle(duration = 400, easing = ease_in_cubic)]
+    #[cycle(duration = 400, easing = cubic_in)]
     color: Color,
 
-    #[alternate(duration = 500, easing = ease_in_out_quad)]
+    #[alternate(duration = 500, easing = quad_in_out)]
     status: String,
 }
 ```
 
-Use `get()` to read and `set()` to write animated fields. Place `animate::tick()` at the start of each frame as this avoids unnecessary computations within same render frame.
+By default the macro generates an update method named `animate`. It must be called at the top of your struct's render method.
 
 ```rust
+#[animate]
+pub struct MyWidget { ... }
+
+impl MyWidget {
+    pub fn draw(&mut self, frame: &mut Frame) {
+        self.animate();
+
+        // rest of your code
+    }
+}
+```
+
+If the name conflicts with an existing method, rename it:
+
+```rust
+#[animate(update = "update_animations")]
+pub struct MyWidget { ... }
+```
+
+Next, place `animate::tick()` **before** your struct's update call at the start of each frame:
+
+```rust
+let mut widget = MyWidget::new(...);
+
 loop {
-    animate::tick();
-    draw(|frame| {
-        // render logic
+    animate::tick(tickrate);
+    terminal.draw(|frame| {
+        widget.draw(frame);
     })?;
 }
 ```
+
+Use `get()` to read and `set()` to write animated fields.
 
 ## Minimal example
 
@@ -65,12 +87,11 @@ struct Counter {
 }
 
 fn main() -> std::io::Result<()> {
-    // new() is auto-generated
     let mut c = Counter::new(0);
 
     loop {
-        // must be called at the start of each frame
-        animate::tick();
+        animate::tick(8);  // advance global frame time by frame delta (ms)
+        c.animate();       // update all animated fields
 
         let v = *c.value;
         if v == 0 {
@@ -88,5 +109,48 @@ fn main() -> std::io::Result<()> {
     }
 
     Ok(())
+}
+```
+
+## Animation modes
+
+| Attribute      | Behaviour                                           |
+|----------------|-----------------------------------------------------|
+| `#[once]`      | Animates to target once, then holds.                |
+| `#[cycle]`     | Loops continuously from start to target.            |
+| `#[alternate]` | Ping-pongs back and forth between start and target. |
+
+## Fields
+
+All mode attributes accept the same options:
+
+```rust
+#[once(duration = 300, easing = quad_in_out, interp = my_interp_fn)]
+```
+
+| Option     | Type       | Default             | Description                                      |
+|------------|------------|---------------------|--------------------------------------------------|
+| `duration` | `u64` (ms) | `0`                 | Animation duration in milliseconds.              |
+| `easing`   | path       | `linear`            | Easing function (`fn(f64) -> f64`).              |
+| `interp`   | path       | `<T as Lerp>::lerp` | Interpolation function (`fn(&T, &T, f64) -> T`). |
+
+## Built-in easing functions
+
+`linear`, `quad_in`, `quad_out`, `quad_in_out`,
+`cubic_in`, `cubic_out`, `cubic_in_out`
+
+## Custom types
+
+Implement `Lerp` for any type:
+
+```rust
+impl animate::Lerp for MyColor {
+    fn lerp(start: &Self, end: &Self, t: f64) -> Self {
+        MyColor {
+            r: u8::lerp(&start.r, &end.r, t),
+            g: u8::lerp(&start.g, &end.g, t),
+            b: u8::lerp(&start.b, &end.b, t),
+        }
+    }
 }
 ```
