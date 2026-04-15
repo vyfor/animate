@@ -17,43 +17,43 @@ mod enabled {
 
     #[animate]
     struct Gauges {
-        #[alternate(duration = 2500, easing = ease_in_out_cubic)]
+        #[alternate(duration = 2500, easing = cubic_in_out)]
         g1: f64,
-        #[alternate(duration = 2500, easing = ease_in_out_quad)]
+        #[alternate(duration = 2500, easing = quad_in_out)]
         g2: f64,
     }
 
     #[animate]
     struct Colors {
-        #[once(duration = 2500, easing = ease_in_out_quad)]
+        #[once(duration = 2500, easing = quad_in_out)]
         color: Color,
     }
 
     #[animate]
     struct Bars {
-        #[alternate(duration = 1250, easing = ease_in_out_cubic)]
+        #[alternate(duration = 1250, easing = cubic_in_out)]
         m1: u64,
-        #[alternate(duration = 2500, easing = ease_in_out_quad)]
+        #[alternate(duration = 2500, easing = quad_in_out)]
         m2: u64,
-        #[alternate(duration = 1666, easing = ease_in_out_cubic)]
+        #[alternate(duration = 1666, easing = cubic_in_out)]
         m3: u64,
-        #[alternate(duration = 1250, easing = ease_in_out_cubic)]
+        #[alternate(duration = 1250, easing = cubic_in_out)]
         m4: u64,
-        #[alternate(duration = 1000, easing = ease_in_out_quad)]
+        #[alternate(duration = 1000, easing = quad_in_out)]
         m5: u64,
-        #[alternate(duration = 833,  easing = ease_in_out_cubic)]
+        #[alternate(duration = 833,  easing = cubic_in_out)]
         m6: u64,
-        #[alternate(duration = 625,  easing = ease_in_out_quad)]
+        #[alternate(duration = 625,  easing = quad_in_out)]
         m7: u64,
-        #[alternate(duration = 500,  easing = ease_in_out_cubic)]
+        #[alternate(duration = 500,  easing = cubic_in_out)]
         m8: u64,
         #[alternate(duration = 400,  easing = linear)]
         m9: u64,
-        #[alternate(duration = 312,  easing = ease_in_out_quad)]
+        #[alternate(duration = 312,  easing = quad_in_out)]
         m10: u64,
-        #[alternate(duration = 2500, easing = ease_in_out_cubic)]
+        #[alternate(duration = 2500, easing = cubic_in_out)]
         m11: u64,
-        #[alternate(duration = 1250, easing = ease_in_out_quad)]
+        #[alternate(duration = 1250, easing = quad_in_out)]
         m12: u64,
     }
 
@@ -71,23 +71,23 @@ mod enabled {
 
     #[animate]
     struct Grid {
-        #[alternate(duration = 5000, easing = ease_in_out_cubic)]
+        #[alternate(duration = 5000, easing = cubic_in_out)]
         horizontal: u16,
-        #[alternate(duration = 2500, easing = ease_in_out_quad)]
+        #[alternate(duration = 2500, easing = quad_in_out)]
         top: u16,
-        #[alternate(duration = 1250, easing = ease_in_out_cubic)]
+        #[alternate(duration = 1250, easing = cubic_in_out)]
         bottom: u16,
     }
 
     #[animate]
     struct Txt {
-        #[alternate(duration = 5000, easing = ease_in_out_quad)]
+        #[alternate(duration = 5000, easing = quad_in_out)]
         text: String,
     }
 
     #[animate]
     struct PingPong {
-        #[alternate(duration = 2500, easing = ease_in_out_quad)]
+        #[alternate(duration = 2500, easing = quad_in_out)]
         percent: f64,
     }
 
