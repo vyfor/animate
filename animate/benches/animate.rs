@@ -69,27 +69,12 @@ fn bench_many_fields(c: &mut Criterion) {
     });
 }
 
-fn bench_get_only(c: &mut Criterion) {
-    c.bench_function("get_only", |b| {
-        let mut anim = Once::new(0.0, 1000.0, easing::linear, f64::lerp);
-        anim.set(100.0);
-
-        b.iter(|| {
-            for _ in 0..50_000 {
-                tick(1);
-                anim.update();
-                black_box(anim.get());
-            }
-        })
-    });
-}
-
 criterion_group!(
     benches,
     bench_once_f64,
     bench_alternate_f64,
     bench_cycle_f64,
-    bench_many_fields,
-    bench_get_only
+    bench_many_fields
 );
+
 criterion_main!(benches);
