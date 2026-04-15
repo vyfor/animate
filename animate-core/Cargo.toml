@@ -7,7 +7,8 @@ keywords = ["terminal", "tui", "cli", "animation", "ratatui"]
 license = "MIT"
 name = "animate-core"
 repository = "https://github.com/vyfor/animate"
-version = "0.2.0"
+version = "0.2.1"
+readme = "../README.md"
 
 [dependencies]
 ratatui = { version = "0.30", optional = true }
