@@ -7,7 +7,7 @@ keywords = ["terminal", "tui", "cli", "animation", "ratatui"]
 license = "MIT"
 name = "animate-macros"
 repository = "https://github.com/vyfor/animate"
-version = "0.2.1"
+version = "0.3.0"
 readme = "../README.md"
 
 [lib]
