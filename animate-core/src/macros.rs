@@ -8,7 +8,7 @@ macro_rules! impl_ops {
         {
             type Target = T;
             fn deref(&self) -> &T {
-                self.get()
+                $crate::Animate::get(self)
             }
         }
 
@@ -19,7 +19,7 @@ macro_rules! impl_ops {
             I: Fn(&T, &T, f64) -> T,
         {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                self.get().fmt(f)
+                $crate::Animate::get(self).fmt(f)
             }
         }
 
@@ -31,8 +31,8 @@ macro_rules! impl_ops {
             for<'b> &'b T: std::ops::Add<T, Output = T>,
         {
             fn add_assign(&mut self, rhs: T) {
-                let v = self.target() + rhs;
-                self.set(v);
+                let v = $crate::Animate::target(self) + rhs;
+                $crate::Animate::set(self, v);
             }
         }
 
@@ -44,8 +44,8 @@ macro_rules! impl_ops {
             for<'b> &'b T: std::ops::Sub<T, Output = T>,
         {
             fn sub_assign(&mut self, rhs: T) {
-                let v = self.target() - rhs;
-                self.set(v);
+                let v = $crate::Animate::target(self) - rhs;
+                $crate::Animate::set(self, v);
             }
         }
 
@@ -57,8 +57,8 @@ macro_rules! impl_ops {
             for<'b> &'b T: std::ops::Mul<T, Output = T>,
         {
             fn mul_assign(&mut self, rhs: T) {
-                let v = self.target() * rhs;
-                self.set(v);
+                let v = $crate::Animate::target(self) * rhs;
+                $crate::Animate::set(self, v);
             }
         }
 
@@ -70,8 +70,8 @@ macro_rules! impl_ops {
             for<'b> &'b T: std::ops::Div<T, Output = T>,
         {
             fn div_assign(&mut self, rhs: T) {
-                let v = self.target() / rhs;
-                self.set(v);
+                let v = $crate::Animate::target(self) / rhs;
+                $crate::Animate::set(self, v);
             }
         }
     };

@@ -3,10 +3,7 @@ mod macros;
 pub mod mode;
 pub mod types;
 
-use std::{
-    cell::UnsafeCell,
-    sync::atomic::{AtomicBool, AtomicUsize, Ordering},
-};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 pub use easing::*;
 pub use mode::*;
@@ -16,6 +13,7 @@ pub static IS_ANIMATING: AtomicBool = AtomicBool::new(false);
 
 pub trait Animate {
     type Value;
+    fn update(&mut self);
     fn get(&self) -> &Self::Value;
     fn set(&mut self, target: Self::Value);
     fn target(&self) -> &Self::Value;
@@ -27,7 +25,7 @@ pub(crate) struct StateInner<T> {
     pub start: T,
     pub target: T,
     pub started_at: Option<usize>,
-    pub last_update: usize,
+    pub pending: bool,
 }
 
 #[derive(Debug)]
@@ -36,7 +34,7 @@ where
     E: Fn(f64) -> f64,
     I: Fn(&T, &T, f64) -> T,
 {
-    pub inner: UnsafeCell<StateInner<T>>,
+    pub inner: StateInner<T>,
     pub duration: f64,
     pub easing: E,
     pub interp: I,
@@ -49,13 +47,13 @@ where
 {
     pub fn new(initial: T, duration: f64, easing: E, interp: I) -> Self {
         Self {
-            inner: UnsafeCell::new(StateInner {
+            inner: StateInner {
                 current: initial,
                 start: Default::default(),
                 target: Default::default(),
                 started_at: None,
-                last_update: 0,
-            }),
+                pending: false,
+            },
             duration: duration.max(f64::MIN_POSITIVE),
             easing,
             interp,

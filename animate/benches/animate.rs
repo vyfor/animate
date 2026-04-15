@@ -1,4 +1,4 @@
-use animate::{Alternate, Cycle, Lerp, Once, easing, tick};
+use animate::{Alternate, Animate as _, Cycle, Lerp, Once, easing, tick};
 use criterion::{Criterion, criterion_group, criterion_main};
 use std::hint::black_box;
 
@@ -10,6 +10,7 @@ fn bench_once_f64(c: &mut Criterion) {
 
             for _ in 0..10_000 {
                 tick(1);
+                anim.update();
                 black_box(anim.get());
             }
         })
@@ -24,6 +25,7 @@ fn bench_alternate_f64(c: &mut Criterion) {
 
             for _ in 0..10_000 {
                 tick(1);
+                anim.update();
                 black_box(anim.get());
             }
         })
@@ -38,6 +40,7 @@ fn bench_cycle_f64(c: &mut Criterion) {
 
             for _ in 0..10_000 {
                 tick(1);
+                anim.update();
                 black_box(anim.get());
             }
         })
@@ -57,7 +60,8 @@ fn bench_many_fields(c: &mut Criterion) {
 
             for _ in 0..1000 {
                 tick(1);
-                for a in &anims {
+                for a in &mut anims {
+                    a.update();
                     black_box(a.get());
                 }
             }
@@ -73,6 +77,7 @@ fn bench_get_only(c: &mut Criterion) {
         b.iter(|| {
             for _ in 0..50_000 {
                 tick(1);
+                anim.update();
                 black_box(anim.get());
             }
         })

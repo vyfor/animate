@@ -25,7 +25,7 @@ mod enabled {
 
     #[animate]
     struct Colors {
-        #[cycle(duration = 2500, easing = ease_in_out_quad)]
+        #[once(duration = 2500, easing = ease_in_out_quad)]
         color: Color,
     }
 
@@ -171,6 +171,16 @@ mod enabled {
         }
 
         pub fn update(&mut self) {
+            self.gauges.animate();
+            self.colorscheme.animate();
+            self.bars.animate();
+            self.spark.animate();
+            self.wave.animate();
+            self.grid.animate();
+            self.text.animate();
+            self.pingpong.animate();
+            self.circle.animate();
+
             if self.color_timer.elapsed() >= Duration::from_millis(2500) {
                 self.color_timer = Instant::now();
                 self.color_index = (self.color_index + 1) % self.colors.len();
