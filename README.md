@@ -148,6 +148,7 @@ pub struct Widget {
     #[spring(stiffness = 200.0, damping = 20.0, mass = 1.0)]
     x: f64,
 }
+```
 
 ## Custom types
 
