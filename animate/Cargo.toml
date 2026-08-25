@@ -7,12 +7,13 @@ keywords = ["terminal", "tui", "cli", "animation", "ratatui"]
 license = "MIT"
 name = "animate"
 repository = "https://github.com/vyfor/animate"
-version = "0.4.2"
+version = "0.4.3"
 readme = "../README.md"
 
 [dependencies]
-animate-core = { path = "../animate-core", package = "animate-core", version = "0.4.2" }
-animate-macros = { path = "../animate-macros", package = "animate-macros", version = "0.4.2" }
+animate-core = { path = "../animate-core", package = "animate-core", version = "0.4.3" }
+animate-macros = { path = "../animate-macros", package = "animate-macros", version = "0.4.3" }
+ratatui = { version = "0.30", optional = true }
 
 [dev-dependencies]
 ratatui = "0.30"
@@ -21,7 +22,7 @@ criterion = "0.8"
 
 [features]
 default = []
-ratatui = ["animate-core/ratatui"]
+ratatui = ["dep:ratatui", "animate-core/ratatui"]
 
 [[bench]]
 name = "animate"
