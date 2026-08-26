@@ -14,6 +14,12 @@ Lightweight Rust animation library with tweening and physics-based springs
 - **Physics-based**: Supports spring animations.
 - **Ratatui-friendly**: Interpolators for ratatui types, gated behind the `ratatui` feature flag.
 
+## Ecosystem
+
+A curated selection of projects tightly integrated with `animate`:
+
+- [Kursor](https://github.com/vyfor/kursor) - Build reactive terminal interfaces in Rust.
+
 ## Installation
 
 ```sh
