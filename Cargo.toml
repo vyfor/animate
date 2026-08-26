@@ -9,6 +9,5 @@ categories = ["command-line-interface"]
 description = "Animation library"
 edition = "2024"
 keywords = ["terminal", "tui", "cli", "animation", "ratatui"]
-license = "MIT"
+license = "MIT OR Apache-2.0"
 repository = "https://github.com/vyfor/animate"
-readme = "../README.md"

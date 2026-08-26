@@ -205,3 +205,7 @@ loop {
     terminal.draw(|frame| app.draw(frame))?;
 }
 ```
+
+## Licensing
+
+Dual licensed under MIT OR Apache-2.0 at your discretion. See [LICENSE-MIT](LICENSE-MIT) and [LICENSE-APACHE](LICENSE-APACHE) for details.
