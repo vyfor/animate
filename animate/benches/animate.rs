@@ -1,47 +1,57 @@
-use animate::{Animate as _, TweenAnim, Tween, Once, Alternate, Cycle, easing, tick};
+use animate::{Clock, Repeat, Tween, easing};
 use criterion::{Criterion, criterion_group, criterion_main};
 use std::hint::black_box;
+use std::time::Duration;
 
-fn bench_once_f64(c: &mut Criterion) {
-    c.bench_function("once_f64", |b| {
+fn bench_once_f32(c: &mut Criterion) {
+    c.bench_function("once_f32", |b| {
         b.iter(|| {
-            let mut anim: Tween<_, _, _, Once> = Tween::new(0.0, 1000.0, easing::linear, f64::tween);
-            anim.set(100.0);
+            let mut clock = Clock::new();
+            let mut anim = Tween::new(0.0f32)
+                .duration(Duration::from_secs(10))
+                .easing(easing::linear);
+            anim.to(100.0);
 
             for _ in 0..10_000 {
-                tick(1);
-                anim.update();
-                black_box(anim.get());
+                let time = clock.advance(Duration::from_millis(1));
+                black_box(anim.advance(time));
             }
         })
     });
 }
 
-fn bench_alternate_f64(c: &mut Criterion) {
-    c.bench_function("alternate_f64", |b| {
+fn bench_alternate_f32(c: &mut Criterion) {
+    c.bench_function("alternate_f32", |b| {
         b.iter(|| {
-            let mut anim: Tween<_, _, _, Alternate> = Tween::new(0.0, 1000.0, easing::linear, f64::tween);
-            anim.set(100.0);
+            let mut clock = Clock::new();
+            let mut anim = Tween::new(0.0f32)
+                .duration(Duration::from_secs(10))
+                .easing(easing::linear)
+                .alternate(true)
+                .repeat(Repeat::Infinite);
+            anim.to(100.0);
 
             for _ in 0..10_000 {
-                tick(1);
-                anim.update();
-                black_box(anim.get());
+                let time = clock.advance(Duration::from_millis(1));
+                black_box(anim.advance(time));
             }
         })
     });
 }
 
-fn bench_cycle_f64(c: &mut Criterion) {
-    c.bench_function("cycle_f64", |b| {
+fn bench_cycle_f32(c: &mut Criterion) {
+    c.bench_function("cycle_f32", |b| {
         b.iter(|| {
-            let mut anim: Tween<_, _, _, Cycle> = Tween::new(0.0, 1000.0, easing::linear, f64::tween);
-            anim.set(100.0);
+            let mut clock = Clock::new();
+            let mut anim = Tween::new(0.0f32)
+                .duration(Duration::from_secs(10))
+                .easing(easing::linear)
+                .repeat(Repeat::Infinite);
+            anim.to(100.0);
 
             for _ in 0..10_000 {
-                tick(1);
-                anim.update();
-                black_box(anim.get());
+                let time = clock.advance(Duration::from_millis(1));
+                black_box(anim.advance(time));
             }
         })
     });
@@ -50,19 +60,19 @@ fn bench_cycle_f64(c: &mut Criterion) {
 fn bench_many_fields(c: &mut Criterion) {
     c.bench_function("many_fields_100", |b| {
         b.iter(|| {
+            let mut clock = Clock::new();
             let mut anims = (0..100)
-                .map(|_| Tween::<_, _, _, Once>::new(0.0, 1000.0, easing::linear, f64::tween))
+                .map(|_| Tween::new(0.0f32).duration(Duration::from_secs(10)))
                 .collect::<Vec<_>>();
 
             for a in &mut anims {
-                a.set(100.0);
+                a.to(100.0);
             }
 
-            for _ in 0..1000 {
-                tick(1);
+            for _ in 0..1_000 {
+                let time = clock.advance(Duration::from_millis(1));
                 for a in &mut anims {
-                    a.update();
-                    black_box(a.get());
+                    black_box(a.advance(time));
                 }
             }
         })
@@ -71,9 +81,9 @@ fn bench_many_fields(c: &mut Criterion) {
 
 criterion_group!(
     benches,
-    bench_once_f64,
-    bench_alternate_f64,
-    bench_cycle_f64,
+    bench_once_f32,
+    bench_alternate_f32,
+    bench_cycle_f32,
     bench_many_fields
 );
 

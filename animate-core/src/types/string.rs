@@ -1,7 +1,7 @@
-use crate::TweenAnim;
+use crate::interpolate::Interpolate;
 
-impl TweenAnim for String {
-    fn tween(start: &String, end: &String, t: f64) -> String {
+impl Interpolate for String {
+    fn lerp(start: &String, end: &String, t: f32) -> String {
         if t <= 0.0 {
             return start.clone();
         }
@@ -20,7 +20,7 @@ impl TweenAnim for String {
 
         let erase_len = start_chars.len() - shared;
         let reveal_len = end_chars.len() - shared;
-        let total = (erase_len + reveal_len) as f64;
+        let total = (erase_len + reveal_len) as f32;
 
         let mut result: String = end_chars[..shared].iter().collect();
 
@@ -30,11 +30,11 @@ impl TweenAnim for String {
 
         let progress = total * t;
 
-        if progress < erase_len as f64 {
+        if progress < erase_len as f32 {
             let remaining = erase_len - progress.round() as usize;
             result.extend(start_chars[shared..shared + remaining].iter());
         } else {
-            let revealed = (progress - erase_len as f64).round() as usize;
+            let revealed = (progress - erase_len as f32).round() as usize;
             result.extend(end_chars[shared..shared + revealed.min(reveal_len)].iter());
         }
 

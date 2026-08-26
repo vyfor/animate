@@ -1,18 +1,18 @@
 [package]
-authors = ["vyfor"]
-categories = ["command-line-interface"]
-description = "Animation library for Ratatui"
-edition = "2024"
-keywords = ["terminal", "tui", "cli", "animation", "ratatui"]
-license = "MIT"
 name = "animate"
-repository = "https://github.com/vyfor/animate"
-version = "0.4.3"
-readme = "../README.md"
+version.workspace = true
+authors.workspace = true
+categories.workspace = true
+description.workspace = true
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
 
 [dependencies]
-animate-core = { path = "../animate-core", package = "animate-core", version = "0.4.3" }
-animate-macros = { path = "../animate-macros", package = "animate-macros", version = "0.4.3" }
+animate-core = { path = "../animate-core", package = "animate-core", version = "0.5.0" }
+animate-macros = { path = "../animate-macros", package = "animate-macros", version = "0.5.0", optional = true }
 ratatui = { version = "0.30", optional = true }
 
 [dev-dependencies]
@@ -21,7 +21,9 @@ crossterm = "0.29"
 criterion = "0.8"
 
 [features]
-default = []
+default = ["macros", "global-clock"]
+macros = ["dep:animate-macros"]
+global-clock = ["animate-core/global-clock"]
 ratatui = ["dep:ratatui", "animate-core/ratatui"]
 
 [[bench]]

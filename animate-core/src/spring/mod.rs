@@ -1,207 +1,201 @@
-mod alternate;
-mod cycle;
-mod once;
+mod anim;
 mod distance;
+mod params;
 mod settled;
 
+pub use anim::Integrate;
 pub use distance::Distance;
+pub use params::SpringParams;
 pub use settled::Settled;
 
-use crate::{Animate, Mode, Once};
-use std::marker::PhantomData;
+use crate::interpolate::Interpolate;
+use crate::{Activity, Animation, Time};
+use std::fmt;
+use std::ops::Deref;
 
-pub struct Spring<T, I, M = Once>
-where
-    M: Mode,
-    T: SpringAnim,
-    I: Fn(&T, &T, &T::Velocity, SpringParams, f64) -> (T, T::Velocity),
-{
-    pub(crate) state: SpringState<T, I>,
-    _mode: PhantomData<M>,
-    pub(crate) advancing: bool,
+#[derive(Debug, Clone)]
+pub struct Spring<T: Integrate> {
+    current: T,
+    target: T,
+    velocity: T::Velocity,
+    params: SpringParams,
+    running: bool,
 }
 
-impl<T, I, M> Spring<T, I, M>
+impl<T> Spring<T>
 where
-    M: Mode,
-    T: SpringAnim,
-    I: Fn(&T, &T, &T::Velocity, SpringParams, f64) -> (T, T::Velocity),
+    T: Integrate + Interpolate + Clone + PartialEq,
 {
-    pub fn new(initial: T, params: SpringParams, interp: I) -> Self {
+    pub fn new(initial: T) -> Self {
         Self {
-            state: SpringState::new(initial, params, interp),
-            _mode: PhantomData,
-            advancing: true,
+            target: initial.clone(),
+            current: initial,
+            velocity: T::Velocity::default(),
+            params: SpringParams::default(),
+            running: false,
         }
     }
 
-    pub fn velocity(&self) -> f64
+    pub fn stiffness(mut self, stiffness: f32) -> Self {
+        self.params.stiffness = stiffness;
+        self
+    }
+
+    pub fn damping(mut self, damping: f32) -> Self {
+        self.params.damping = damping;
+        self
+    }
+
+    pub fn mass(mut self, mass: f32) -> Self {
+        self.params.mass = mass;
+        self
+    }
+
+    pub fn epsilon(mut self, epsilon: f32) -> Self {
+        self.params.epsilon = epsilon;
+        self
+    }
+
+    pub fn params(mut self, params: SpringParams) -> Self {
+        self.params = params;
+        self
+    }
+
+    pub fn to(&mut self, target: T) {
+        if !self.running && target == self.current {
+            self.target = target;
+            return;
+        }
+        if self.running && target == self.target {
+            return;
+        }
+        self.target = target;
+        self.running = true;
+    }
+
+    pub fn is_running(&self) -> bool {
+        self.running
+    }
+
+    pub fn stop(&mut self) {
+        self.running = false;
+        self.velocity = T::Velocity::default();
+    }
+
+    pub fn finish(&mut self) {
+        self.current = self.target.clone();
+        self.velocity = T::Velocity::default();
+        self.running = false;
+    }
+
+    pub fn velocity(&self) -> f32
     where
         T::Velocity: Settled,
     {
-        self.state.velocity.magnitude()
+        self.velocity.magnitude()
     }
 }
 
+impl<T> Spring<T>
+where
+    T: Integrate + Interpolate + Clone + PartialEq + Distance,
+    T::Velocity: Settled,
+{
+    pub fn advance(&mut self, time: Time) -> Activity {
+        if !self.running {
+            return Activity::NONE;
+        }
 
-pub trait SpringAnim: Sized + Default {
-    fn spring(
-        current: &Self,
-        target: &Self,
-        velocity: &Self::Velocity,
-        params: SpringParams,
-        delta: f64,
-    ) -> (Self, Self::Velocity);
+        let dt = time.delta.as_secs_f32();
+        if dt <= 0.0 {
+            return Activity::RUNNING;
+        }
 
-    type Velocity: Default + std::fmt::Debug;
+        // assume 16ms deltas
+        let steps = ((dt / (1.0 / 60.0)).ceil() as u32).clamp(1, 120); // max 2s, todo: revisit in future.
+        let h = dt / steps as f32;
+        let epsilon = self.params.epsilon;
+
+        let mut current = self.current.clone();
+        let mut velocity = self.velocity;
+        let mut settled = false;
+
+        for _ in 0..steps {
+            let (next, next_velocity) =
+                current.integrate(&self.target, &velocity, self.params, h);
+            current = next;
+            velocity = next_velocity;
+            if current.distance(&self.target) < epsilon && velocity.is_within_epsilon(epsilon) {
+                settled = true;
+                break;
+            }
+        }
+
+        let changed = current != self.current;
+
+        if settled {
+            self.current = self.target.clone();
+            self.velocity = T::Velocity::default();
+            self.running = false;
+            Activity { changed, running: false, finished: true }
+        } else {
+            self.current = current;
+            self.velocity = velocity;
+            Activity { changed, running: true, finished: false }
+        }
+    }
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct SpringParams {
-    pub stiffness: f32,
-    pub damping: f32,
-    pub mass: f32,
-    pub epsilon: f32,
-}
-
-impl Default for SpringParams {
+impl<T: Integrate + Default> Default for Spring<T>
+where
+    T: Interpolate + Clone + PartialEq,
+{
     fn default() -> Self {
-        Self {
-            stiffness: 100.0,
-            damping: 10.0,
-            mass: 1.0,
-            epsilon: 0.001,
-        }
+        Self::new(T::default())
     }
 }
 
-impl SpringParams {
-    pub fn new(stiffness: f32, damping: f32, mass: f32) -> Self {
-        Self {
-            stiffness,
-            damping,
-            mass,
-            ..Default::default()
-        }
-    }
-}
-
-#[derive(Debug)]
-pub(crate) struct SpringState<T: SpringAnim, I>
-where
-    I: Fn(&T, &T, &T::Velocity, SpringParams, f64) -> (T, T::Velocity),
-{
-    pub current: T,
-    pub origin: T,
-    pub target: T,
-    pub velocity: T::Velocity,
-    pub active: bool,
-    pub pending: bool,
-    pub params: SpringParams,
-    pub interp: I,
-}
-
-impl<T, I> SpringState<T, I>
-where
-    T: SpringAnim,
-    I: Fn(&T, &T, &T::Velocity, SpringParams, f64) -> (T, T::Velocity),
-{
-    pub fn new(initial: T, params: SpringParams, interp: I) -> Self {
-        Self {
-            current: initial,
-            origin: T::default(),
-            target: T::default(),
-            velocity: T::Velocity::default(),
-            active: false,
-            pending: false,
-            params,
-            interp,
-        }
-    }
-}
-
-impl<T, I, M> std::ops::Deref for Spring<T, I, M>
-where
-    M: Mode,
-    T: SpringAnim,
-    I: Fn(&T, &T, &T::Velocity, SpringParams, f64) -> (T, T::Velocity),
-    Self: Animate<Value = T>,
-{
+impl<T: Integrate> Deref for Spring<T> {
     type Target = T;
+
     fn deref(&self) -> &T {
-        Animate::get(self)
+        &self.current
     }
 }
 
-impl<T, I, M> std::fmt::Display for Spring<T, I, M>
+impl<T> fmt::Display for Spring<T>
 where
-    M: Mode,
-    T: SpringAnim + std::fmt::Display,
-    I: Fn(&T, &T, &T::Velocity, SpringParams, f64) -> (T, T::Velocity),
-    Self: Animate<Value = T>,
+    T: Integrate + Interpolate + Clone + PartialEq + fmt::Display,
 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Animate::get(self).fmt(f)
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.current.fmt(f)
     }
 }
 
-impl<T, I, M> std::ops::AddAssign<T> for Spring<T, I, M>
+impl<T> Animation for Spring<T>
 where
-    M: Mode,
-    T: SpringAnim,
-    I: Fn(&T, &T, &T::Velocity, SpringParams, f64) -> (T, T::Velocity),
-    for<'b> &'b T: std::ops::Add<T, Output = T>,
-    Self: Animate<Value = T>,
+    T: Integrate + Interpolate + Clone + PartialEq + Distance,
+    T::Velocity: Settled,
 {
-    fn add_assign(&mut self, rhs: T) {
-        let v = Animate::target(self) + rhs;
-        Animate::set(self, v);
-    }
-}
+    type Value = T;
 
-impl<T, I, M> std::ops::SubAssign<T> for Spring<T, I, M>
-where
-    M: Mode,
-    T: SpringAnim,
-    I: Fn(&T, &T, &T::Velocity, SpringParams, f64) -> (T, T::Velocity),
-    for<'b> &'b T: std::ops::Sub<T, Output = T>,
-    Self: Animate<Value = T>,
-{
-    fn sub_assign(&mut self, rhs: T) {
-        let v = Animate::target(self) - rhs;
-        Animate::set(self, v);
+    #[inline]
+    fn advance(&mut self, time: Time) -> Activity {
+        Spring::advance(self, time)
     }
-}
 
-impl<T, I, M> std::ops::MulAssign<T> for Spring<T, I, M>
-where
-    M: Mode,
-    T: SpringAnim,
-    I: Fn(&T, &T, &T::Velocity, SpringParams, f64) -> (T, T::Velocity),
-    for<'b> &'b T: std::ops::Mul<T, Output = T>,
-    Self: Animate<Value = T>,
-{
-    fn mul_assign(&mut self, rhs: T) {
-        let v = Animate::target(self) * rhs;
-        Animate::set(self, v);
+    #[inline]
+    fn value(&self) -> &T {
+        &self.current
     }
-}
 
-impl<T, I, M> std::ops::DivAssign<T> for Spring<T, I, M>
-where
-    M: Mode,
-    T: SpringAnim,
-    I: Fn(&T, &T, &T::Velocity, SpringParams, f64) -> (T, T::Velocity),
-    for<'b> &'b T: std::ops::Div<T, Output = T>,
-    Self: Animate<Value = T>,
-{
-    fn div_assign(&mut self, rhs: T) {
-        let v = Animate::target(self) / rhs;
-        Animate::set(self, v);
+    #[inline]
+    fn target(&self) -> &T {
+        &self.target
     }
-}
 
-#[inline]
-fn has_settled<V: Settled>(delta: f64, velocity: &V, epsilon: f32) -> bool {
-    delta.abs() < epsilon as f64 && velocity.is_within_epsilon(epsilon)
+    #[inline]
+    fn to(&mut self, target: T) {
+        Spring::to(self, target);
+    }
 }

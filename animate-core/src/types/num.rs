@@ -1,61 +1,82 @@
-use crate::{SpringAnim, SpringParams, TweenAnim};
+use crate::interpolate::Interpolate;
+use crate::spring::{Distance, Integrate, SpringParams};
 
-#[inline(always)]
-pub(crate) fn spring_step(
-    pos: f64,
-    target: f64,
-    vel: f64,
-    p: SpringParams,
-    dt: f64,
-) -> (f64, f64) {
-    let k = p.stiffness as f64;
-    let c = p.damping as f64;
-    let m = p.mass as f64;
-
-    let displacement = pos - target;
-    let accel = (-k * displacement - c * vel) / m;
-    let new_vel = vel + accel * dt;
-    let new_pos = pos + new_vel * dt;
-    (new_pos, new_vel)
+impl Interpolate for f32 {
+    #[inline]
+    fn lerp(from: &Self, to: &Self, t: f32) -> Self {
+        from + (to - from) * t
+    }
 }
 
-macro_rules! impl_num {
-    ($t:ty) => {
-        impl TweenAnim for $t {
-            #[inline]
-            fn tween(start: &$t, end: &$t, t: f64) -> $t {
-                (*start as f64 + (*end as f64 - *start as f64) * t) as $t
-            }
-        }
+impl Interpolate for f64 {
+    #[inline]
+    fn lerp(from: &Self, to: &Self, t: f32) -> Self {
+        from + (to - from) * t as f64
+    }
+}
 
-        impl SpringAnim for $t {
-            type Velocity = f64;
+impl Integrate for f32 {
+    type Velocity = f32;
 
-            #[inline]
-            fn spring(
-                current: &$t,
-                target: &$t,
-                velocity: &f64,
-                params: SpringParams,
-                dt: f64,
-            ) -> ($t, f64) {
-                let (new_pos, new_vel) =
-                    spring_step(*current as f64, *target as f64, *velocity, params, dt);
-                (new_pos.round() as $t, new_vel)
+    #[inline]
+    fn integrate(&self, target: &Self, velocity: &f32, params: SpringParams, dt: f32) -> (Self, f32) {
+        let (pos, vel) = params.step(*self, *target, *velocity, dt);
+        (pos, vel)
+    }
+}
+
+impl Integrate for f64 {
+    type Velocity = f32;
+
+    #[inline]
+    fn integrate(&self, target: &Self, velocity: &f32, params: SpringParams, dt: f32) -> (Self, f32) {
+        let (pos, vel) = params.step(*self as f32, *target as f32, *velocity, dt);
+        (pos as f64, vel)
+    }
+}
+
+impl Distance for f32 {
+    #[inline]
+    fn distance(&self, other: &Self) -> f32 {
+        (*self - *other).abs()
+    }
+}
+
+impl Distance for f64 {
+    #[inline]
+    fn distance(&self, other: &Self) -> f32 {
+        (*self as f32 - *other as f32).abs()
+    }
+}
+
+macro_rules! impl_int {
+    ($($t:ty),* $(,)?) => {
+        $(
+            impl Integrate for $t {
+                type Velocity = f32;
+                #[inline]
+                fn integrate(&self, target: &Self, velocity: &f32, params: SpringParams, dt: f32) -> (Self, f32) {
+                    let (pos, vel) = params.step(*self as f32, *target as f32, *velocity, dt);
+                    (pos.round() as $t, vel)
+                }
             }
-        }
+
+            impl Interpolate for $t {
+                #[inline]
+                fn lerp(from: &Self, to: &Self, t: f32) -> Self {
+                    (*from as f32 + (*to as f32 - *from as f32) * t).round() as $t
+                }
+            }
+
+            impl Distance for $t {
+                #[inline]
+                fn distance(&self, other: &Self) -> f32 {
+                    (*self as f32 - *other as f32).abs()
+                }
+            }
+        )*
     };
 }
 
-impl_num!(f64);
-impl_num!(f32);
-impl_num!(usize);
-impl_num!(isize);
-impl_num!(u64);
-impl_num!(i64);
-impl_num!(u32);
-impl_num!(i32);
-impl_num!(u16);
-impl_num!(i16);
-impl_num!(u8);
-impl_num!(i8);
+
+impl_int!(usize, isize, u64, i64, u32, i32, u16, i16, u8, i8);

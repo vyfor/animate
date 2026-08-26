@@ -1,18 +1,19 @@
 [package]
-authors = ["vyfor"]
-categories = ["command-line-interface"]
-description = "Animation library for Ratatui"
-edition = "2024"
-keywords = ["terminal", "tui", "cli", "animation", "ratatui"]
-license = "MIT"
 name = "animate-core"
-repository = "https://github.com/vyfor/animate"
-version = "0.4.3"
-readme = "../README.md"
+version.workspace = true
+authors.workspace = true
+categories.workspace = true
+description.workspace = true
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
 
 [dependencies]
 ratatui = { version = "0.30", optional = true }
 
 [features]
 default = []
+global-clock = []
 ratatui = ["dep:ratatui"]

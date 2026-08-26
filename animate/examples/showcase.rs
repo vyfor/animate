@@ -1,6 +1,6 @@
-#[cfg(feature = "ratatui")]
+#[cfg(all(feature = "ratatui", feature = "macros"))]
 mod enabled {
-    use animate::animate;
+    use animate::{Clock, Time, animate};
     use ratatui::Frame;
     use ratatui::{
         layout::{Constraint, Layout, Rect},
@@ -17,9 +17,9 @@ mod enabled {
 
     #[animate]
     struct Gauges {
-        #[tween(mode = "alternate", duration = 2500, easing = cubic_in_out)]
+        #[tween(duration = 2500, easing = cubic_in_out, alternate)]
         g1: f64,
-        #[tween(mode = "alternate", duration = 2500, easing = quad_in_out)]
+        #[tween(duration = 2500, easing = quad_in_out, alternate)]
         g2: f64,
     }
 
@@ -31,69 +31,69 @@ mod enabled {
 
     #[animate]
     struct Bars {
-        #[tween(mode = "alternate", duration = 1250, easing = cubic_in_out)]
+        #[tween(duration = 1250, easing = cubic_in_out, alternate)]
         m1: u64,
-        #[tween(mode = "alternate", duration = 2500, easing = quad_in_out)]
+        #[tween(duration = 2500, easing = quad_in_out, alternate)]
         m2: u64,
-        #[tween(mode = "alternate", duration = 1666, easing = cubic_in_out)]
+        #[tween(duration = 1666, easing = cubic_in_out, alternate)]
         m3: u64,
-        #[tween(mode = "alternate", duration = 1250, easing = cubic_in_out)]
+        #[tween(duration = 1250, easing = cubic_in_out, alternate)]
         m4: u64,
-        #[tween(mode = "alternate", duration = 1000, easing = quad_in_out)]
+        #[tween(duration = 1000, easing = quad_in_out, alternate)]
         m5: u64,
-        #[tween(mode = "alternate", duration = 833,  easing = cubic_in_out)]
+        #[tween(duration = 833,  easing = cubic_in_out, alternate)]
         m6: u64,
-        #[tween(mode = "alternate", duration = 625,  easing = quad_in_out)]
+        #[tween(duration = 625,  easing = cubic_in_out, alternate)]
         m7: u64,
-        #[tween(mode = "alternate", duration = 500,  easing = cubic_in_out)]
+        #[tween(duration = 500,  easing = cubic_in_out, alternate)]
         m8: u64,
-        #[tween(mode = "alternate", duration = 400,  easing = linear)]
+        #[tween(duration = 400,  easing = linear, alternate)]
         m9: u64,
-        #[tween(mode = "alternate", duration = 312,  easing = quad_in_out)]
+        #[tween(duration = 312,  easing = quad_in_out, alternate)]
         m10: u64,
-        #[tween(mode = "alternate", duration = 2500, easing = cubic_in_out)]
+        #[tween(duration = 2500, easing = cubic_in_out, alternate)]
         m11: u64,
-        #[tween(mode = "alternate", duration = 1250, easing = quad_in_out)]
+        #[tween(duration = 1250, easing = quad_in_out, alternate)]
         m12: u64,
     }
 
     #[animate]
     struct Spark {
-        #[tween(mode = "alternate", duration = 1000, easing = linear)]
+        #[tween(duration = 1000, easing = linear, alternate)]
         value: u64,
     }
 
     #[animate]
     struct Wave {
-        #[tween(mode = "cycle", duration = 2500, easing = linear)]
+        #[tween(duration = 2500, easing = linear, repeat = "infinite")]
         offset: f64,
     }
 
     #[animate]
     struct Grid {
-        #[tween(mode = "alternate", duration = 5000, easing = cubic_in_out)]
+        #[tween(duration = 5000, easing = cubic_in_out, alternate)]
         horizontal: u16,
-        #[tween(mode = "alternate", duration = 2500, easing = quad_in_out)]
+        #[tween(duration = 2500, easing = quad_in_out, alternate)]
         top: u16,
-        #[tween(mode = "alternate", duration = 1250, easing = cubic_in_out)]
+        #[tween(duration = 1250, easing = cubic_in_out, alternate)]
         bottom: u16,
     }
 
     #[animate]
     struct Txt {
-        #[tween(mode = "alternate", duration = 5000, easing = quad_in_out)]
+        #[tween(duration = 5000, easing = quad_in_out, alternate)]
         text: String,
     }
 
     #[animate]
     struct PingPong {
-        #[tween(mode = "alternate", duration = 2500, easing = quad_in_out)]
+        #[tween(duration = 2500, easing = quad_in_out, alternate)]
         percent: f64,
     }
 
     #[animate]
     struct Circle {
-        #[tween(mode = "cycle", duration = 5000, easing = linear)]
+        #[tween(duration = 5000, easing = linear, repeat = "infinite")]
         rotation: f64,
     }
 
@@ -137,54 +137,54 @@ mod enabled {
                 color_timer: Instant::now(),
             };
 
-            app.gauges.g1.set(1.0);
-            app.gauges.g2.set(0.0);
-            app.colorscheme.color.set(app.colors[1]);
+            app.gauges.g1.to(1.0);
+            app.gauges.g2.to(0.0);
+            app.colorscheme.color.to(app.colors[1]);
 
-            app.bars.m1.set(100);
-            app.bars.m2.set(85);
-            app.bars.m3.set(95);
-            app.bars.m4.set(70);
-            app.bars.m5.set(90);
-            app.bars.m6.set(60);
-            app.bars.m7.set(80);
-            app.bars.m8.set(110);
-            app.bars.m9.set(50);
-            app.bars.m10.set(75);
-            app.bars.m11.set(95);
-            app.bars.m12.set(65);
+            app.bars.m1.to(100);
+            app.bars.m2.to(85);
+            app.bars.m3.to(95);
+            app.bars.m4.to(70);
+            app.bars.m5.to(90);
+            app.bars.m6.to(60);
+            app.bars.m7.to(80);
+            app.bars.m8.to(110);
+            app.bars.m9.to(50);
+            app.bars.m10.to(75);
+            app.bars.m11.to(95);
+            app.bars.m12.to(65);
 
-            app.spark.value.set(100);
-            app.wave.offset.set(1.0);
-            app.grid.horizontal.set(70);
-            app.grid.top.set(70);
-            app.grid.bottom.set(70);
+            app.spark.value.to(100);
+            app.wave.offset.to(1.0);
+            app.grid.horizontal.to(70);
+            app.grid.top.to(70);
+            app.grid.bottom.to(70);
 
-            app.text.text.set(
+            app.text.text.to(
             "Lorem ipsum dolor sit amet consectetur adipiscing elit. Amet consectetur adipiscing elit quisque faucibus ex sapien. Quisque faucibus ex sapien vitae pellentesque sem placerat."
                 .into(),
         );
-            app.pingpong.percent.set(1.0);
-            app.circle.rotation.set(1.0);
+            app.pingpong.percent.to(1.0);
+            app.circle.rotation.to(1.0);
 
             app
         }
 
-        pub fn update(&mut self) {
-            self.gauges.animate();
-            self.colorscheme.animate();
-            self.bars.animate();
-            self.spark.animate();
-            self.wave.animate();
-            self.grid.animate();
-            self.text.animate();
-            self.pingpong.animate();
-            self.circle.animate();
+        pub fn update(&mut self, time: Time) {
+            let _ = self.gauges.advance(time)
+                | self.colorscheme.advance(time)
+                | self.bars.advance(time)
+                | self.spark.advance(time)
+                | self.wave.advance(time)
+                | self.grid.advance(time)
+                | self.text.advance(time)
+                | self.pingpong.advance(time)
+                | self.circle.advance(time);
 
             if self.color_timer.elapsed() >= Duration::from_millis(2500) {
                 self.color_timer = Instant::now();
                 self.color_index = (self.color_index + 1) % self.colors.len();
-                self.colorscheme.color.set(self.colors[self.color_index]);
+                self.colorscheme.color.to(self.colors[self.color_index]);
             }
 
             self.spark_data.push(*self.spark.value);
@@ -445,12 +445,13 @@ mod enabled {
 
     pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         let mut app = App::new();
+        let mut clock = Clock::new();
         let frame_time = Duration::from_micros(16666);
 
         ratatui::run(|terminal| {
             for _ in 0..600 {
-                animate::tick(16);
-                app.update();
+                let time = clock.advance(frame_time);
+                app.update(time);
                 terminal.draw(|f| app.draw(f)).unwrap();
                 std::thread::sleep(frame_time);
             }
@@ -460,13 +461,11 @@ mod enabled {
 }
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
-    #[cfg(feature = "ratatui")]
+    #[cfg(all(feature = "ratatui", feature = "macros"))]
     enabled::run().ok();
 
-    #[cfg(not(feature = "ratatui"))]
-    {
-        println!("this example requires the ratatui feature");
-    }
+    #[cfg(not(all(feature = "ratatui", feature = "macros")))]
+    println!("this example requires the ratatui and macros features");
 
     Ok(())
 }

@@ -7,9 +7,9 @@ Lightweight Rust animation library with tweening and physics-based springs
 ## Features
 
 - **Lightweight**: Zero dependencies by default.
-- **Ergonomic**: Macro-driven API with minimal boilerplate.
+- **Ergonomic**: Provides an optional global clock and a macro-driven API for minimal boilerplate.
 - **Extensible**: Many built-in types with support for custom interpolators.
-- **Animation modes**: `once`, `cycle`, `alternate`.
+- **Repeat modes**: `Once`, `Times(n)`, `Infinite`, with optional alternating.
 - **Easing**: Built-in and custom easing functions.
 - **Physics-based**: Supports spring animations.
 - **Ratatui-friendly**: Interpolators for ratatui types, gated behind the `ratatui` feature flag.
@@ -22,32 +22,64 @@ cargo add animate
 
 ## Getting started
 
-Add `#[animate]` to a struct and mark the fields you want to animate:
+Animations are ordinary values you store in your own structs, driven by a `Clock`:
 
 ```rust
+use std::time::Duration;
+use animate::{Clock, Tween};
+
+struct MyWidget {
+    field: Tween<f32>,
+}
+
+impl MyWidget {
+    fn new() -> Self {
+        let field = Tween::new(0.0f32)
+            .duration(Duration::from_millis(300))
+            .easing(animate::easing::quad_out);
+
+        Self {
+            field
+        }
+    }
+
+    fn update(&mut self, clock: &mut Clock, target: f32) {
+        // animate towards target
+        self.field.to(target);
+
+        let time = clock.advance(Duration::from_millis(16));
+        let activity = self.field.advance(time);
+
+        // deref to get the current value
+        println!("{}", *progress);
+    }
+}
+```
+
+## Macros
+
+```rust
+use animate::animate;
+
 #[animate]
 pub struct MyWidget {
     #[tween(duration = 300)]
-    progress: f64,
+    progress: f32,
 
-    #[tween(mode = "cycle", duration = 400, easing = cubic_in)]
+    #[tween(repeat = "infinite", duration = 400, easing = cubic_in)]
     color: Color,
 
-    #[tween(mode = "alternate", duration = 500, easing = quad_in_out)]
+    #[tween(duration = 500, easing = quad_in_out, alternate)]
     status: String,
 }
 ```
 
-By default the macro generates an update method named `animate`. It must be called at the top of your struct's render method.
+The macro generates a method named `advance` and returns the merged `Activity` of every animated field. It must be called at the top of your struct's render method.
 
 ```rust
-#[animate]
-pub struct MyWidget { ... }
-
 impl MyWidget {
     pub fn draw(&mut self, frame: &mut Frame) {
-        self.animate();
-
+        let activity = self.advance(...);
         // rest of your code
     }
 }
@@ -60,26 +92,15 @@ If the name conflicts with an existing method, rename it:
 pub struct MyWidget { ... }
 ```
 
-Next, place `animate::tick()` **before** your struct's update call at the start of each frame:
-
-```rust
-let mut widget = MyWidget::new(...);
-
-loop {
-    animate::tick(tickrate);
-    terminal.draw(|frame| {
-        widget.draw(frame);
-    })?;
-}
-```
-
-Use `get()` to read and `set()` to write animated fields.
-
 ## Minimal example
 
 ```rust
-use animate::animate;
-use std::{io::{stdout, Write}, thread, time::Duration};
+use animate::{Clock, animate};
+use std::{
+    io::{stdout, Write},
+    thread,
+    time::Duration,
+};
 
 #[animate]
 struct Counter {
@@ -89,20 +110,21 @@ struct Counter {
 
 fn main() -> std::io::Result<()> {
     let mut c = Counter::new(0);
+    let mut clock = Clock::new();
 
     loop {
-        animate::tick(8);  // advance global frame time by frame delta (ms)
-        c.animate();       // update all animated fields
+        let time = clock.advance(Duration::from_millis(8));
+        let activity = c.advance(time);
 
         let v = *c.value;
         if v == 0 {
-            c.value.set(100);
+            c.value.to(100);
         }
 
         print!("\rCounter value: {v}");
         stdout().flush()?;
 
-        if v == 100 {
+        if activity.finished() {
             break;
         }
 
@@ -113,25 +135,30 @@ fn main() -> std::io::Result<()> {
 }
 ```
 
-## Animation modes
+## Repeat modes
 
-| Mode value      | Behaviour                                           |
-|----------------|-----------------------------------------------------|
-| `"once"`      | Animates to target once, then holds.                |
-| `"cycle"`     | Loops continuously from start to target.            |
-| `"alternate"` | Ping-pongs back and forth between start and target. |
+| Mode                | Behaviour                                           |
+|---------------------|-----------------------------------------------------|
+| `Repeat::Once`      | Animates to target once, then holds.                |
+| `Repeat::Times(n)`  | Plays `n` cycles, then holds.                       |
+| `Repeat::Infinite`  | Loops continuously from start to target.            |
 
-## Fields
+Can be combined with`.alternate(true)` to reverse direction every other
+cycle.
+
+## Tween fields
 
 ```rust
-#[tween(duration = 300, easing = quad_in_out, interp = my_interp_fn)]
+#[tween(duration = 300, delay = 100, easing = quad_in_out, repeat = "infinite", alternate)]
 ```
 
-| Option     | Type       | Default             | Description                                      |
-|------------|------------|---------------------|--------------------------------------------------|
-| `duration` | `u64` (ms) | `0`                 | Animation duration in milliseconds.              |
-| `easing`   | path       | `linear`            | Easing function (`fn(f64) -> f64`).              |
-| `interp`   | path       | `<T as Lerp>::lerp` | Interpolation function (`fn(&T, &T, f64) -> T`). |
+| Option     | Type       | Default   | Description                          |
+|------------|------------|-----------|--------------------------------------|
+| `duration` | `u64` (ms) | `300`     | Animation duration in milliseconds.  |
+| `delay`    | `u64` (ms) | `0`       | Delay before each run.               |
+| `easing`   | path       | `linear`  | Easing function (`fn(f32) -> f32`).  |
+| `repeat`   | `"once"` / `"infinite"` / integer | `"once"` | Cycle behaviour.          |
+| `alternate`| flag       | off       | Reverse every other cycle.           |
 
 ## Built-in easing functions
 
@@ -152,14 +179,29 @@ pub struct Widget {
 
 ## Custom types
 
+Implement `Interpolate` to tween a type, and/or `Integrate` to spring it:
+
 ```rust
-impl animate::Tween for MyColor {
-    fn lerp(start: &Self, end: &Self, t: f64) -> Self {
+struct MyColor { r: u8, g: u8, b: u8 }
+
+impl animate::Interpolate for MyColor {
+    fn lerp(start: &Self, end: &Self, t: f32) -> Self {
         MyColor {
             r: u8::lerp(&start.r, &end.r, t),
             g: u8::lerp(&start.g, &end.g, t),
             b: u8::lerp(&start.b, &end.b, t),
         }
     }
+}
+```
+
+## Global clock
+
+`animate` optionally provides a global frame-time:
+
+```rust
+loop {
+    animate::global_clock::tick(16);
+    terminal.draw(|frame| app.draw(frame))?;
 }
 ```

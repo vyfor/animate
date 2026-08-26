@@ -1,43 +1,45 @@
 pub trait Settled {
-    fn magnitude(&self) -> f64;
+    fn magnitude(&self) -> f32;
 
     #[inline]
     fn is_within_epsilon(&self, epsilon: f32) -> bool {
-        self.magnitude() < epsilon as f64
+        self.magnitude() < epsilon
     }
 }
 
-#[cfg(feature = "ratatui")]
-impl Settled for [f64; 3] {
+impl Settled for f32 {
     #[inline]
-    fn magnitude(&self) -> f64 {
-        self.iter().map(|v| v * v).sum::<f64>().sqrt()
+    fn magnitude(&self) -> f32 {
+        self.abs()
     }
 }
 
 macro_rules! impl_settled {
-    (s: $($t:ty),* $(,)?) => {
+    ($($t:ty),* $(,)?) => {
         $(
             impl Settled for $t {
                 #[inline]
-                fn magnitude(&self) -> f64 {
-                    self.abs() as f64
-                }
-            }
-        )*
-    };
-
-    (u: $($t:ty),* $(,)?) => {
-        $(
-            impl Settled for $t {
-                #[inline]
-                fn magnitude(&self) -> f64 {
-                    *self as f64
+                fn magnitude(&self) -> f32 {
+                    *self as f32
                 }
             }
         )*
     };
 }
 
-impl_settled!(s: f64, f32, isize, i64, i32, i16, i8);
-impl_settled!(u: usize, u64, u32, u16, u8);
+impl_settled!(usize, isize, u64, i64, u32, i32, u16, i16, u8, i8);
+
+macro_rules! impl_settled_array {
+    ($($n:expr),* $(,)?) => {
+        $(
+            impl Settled for [f32; $n] {
+                #[inline]
+                fn magnitude(&self) -> f32 {
+                    self.iter().map(|v| v * v).sum::<f32>().sqrt()
+                }
+            }
+        )*
+    };
+}
+
+impl_settled_array!(2, 3, 4);
