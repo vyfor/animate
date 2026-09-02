@@ -18,7 +18,7 @@ Lightweight Rust animation library with tweening and physics-based springs
 
 A curated selection of projects tightly integrated with `animate`:
 
-- [Kursor](https://github.com/vyfor/kursor) - Build reactive terminal interfaces in Rust.
+- [Kursor](https://github.com/vyfor/kursor) - Compose reactive terminal interfaces effortlessly.
 
 ## Installation
 
