@@ -61,7 +61,7 @@ impl MyWidget {
 Gated behind the `macros` feature:
 
 ```toml
-animate = { version = "0.6", features = ["macros"] }
+animate = { version = "0.7", features = ["macros"] }
 ```
 
 ```rust
@@ -206,7 +206,7 @@ impl animate::Interpolate for MyColor {
 Gated behind the `global-clock` feature:
 
 ```toml
-animate = { version = "0.6", features = ["global-clock"] }
+animate = { version = "0.7", features = ["global-clock"] }
 ```
 
 ```rust
