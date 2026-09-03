@@ -129,7 +129,11 @@ fn process(input: DeriveInput, attr: AnimateAttr) -> syn::Result<TokenStream2> {
         let attrs: Vec<_> = raw
             .attrs
             .iter()
-            .filter(|a| !["spring", "tween"].iter().any(|attr| a.path().is_ident(attr)))
+            .filter(|a| {
+                !["spring", "tween"]
+                    .iter()
+                    .any(|attr| a.path().is_ident(attr))
+            })
             .collect();
 
         let anim_type = field_anim_type(raw)?;
@@ -161,6 +165,7 @@ fn process(input: DeriveInput, attr: AnimateAttr) -> syn::Result<TokenStream2> {
         }
 
         impl #impl_generics #struct_name #ty_generics #where_clause {
+            #[allow(clippy::too_many_arguments)]
             pub fn new(#(#params),*) -> Self {
                 Self { #(#inits),* }
             }
