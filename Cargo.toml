@@ -11,3 +11,7 @@ edition = "2024"
 keywords = ["terminal", "tui", "cli", "animation", "ratatui"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/vyfor/animate"
+
+[workspace.dependencies]
+animate-core = { path = "animate-core", version = "0.5.0" }
+animate-macros = { path = "animate-macros", version = "0.5.0" }

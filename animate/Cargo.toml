@@ -11,8 +11,8 @@ repository.workspace = true
 readme = "../README.md"
 
 [dependencies]
-animate-core = { path = "../animate-core", package = "animate-core", version = "0.5.0" }
-animate-macros = { path = "../animate-macros", package = "animate-macros", version = "0.5.0", optional = true }
+animate-core = { workspace = true }
+animate-macros = { workspace = true, optional = true }
 ratatui = { version = "0.30", optional = true }
 
 [dev-dependencies]
