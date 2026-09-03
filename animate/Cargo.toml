@@ -21,7 +21,7 @@ crossterm = "0.29"
 criterion = "0.8"
 
 [features]
-default = ["macros", "global-clock"]
+default = []
 macros = ["dep:animate-macros"]
 global-clock = ["animate-core/global-clock"]
 ratatui = ["dep:ratatui", "animate-core/ratatui"]

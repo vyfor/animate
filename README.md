@@ -51,12 +51,18 @@ impl MyWidget {
         let activity = self.field.advance(time);
 
         // deref to get the current value
-        println!("{}", *progress);
+        println!("{}", *self.field);
     }
 }
 ```
 
 ## Macros
+
+Gated behind the `macros` feature:
+
+```toml
+animate = { version = "0.6", features = ["macros"] }
+```
 
 ```rust
 use animate::animate;
@@ -137,11 +143,11 @@ fn main() -> std::io::Result<()> {
 
 ## Repeat modes
 
-| Mode                | Behaviour                                           |
-|---------------------|-----------------------------------------------------|
-| `Repeat::Once`      | Animates to target once, then holds.                |
-| `Repeat::Times(n)`  | Plays `n` cycles, then holds.                       |
-| `Repeat::Infinite`  | Loops continuously from start to target.            |
+| Mode               | Behaviour                                |
+|--------------------|------------------------------------------|
+| `Repeat::Once`     | Animates to target once, then holds.     |
+| `Repeat::Times(n)` | Plays `n` cycles, then holds.            |
+| `Repeat::Infinite` | Loops continuously from start to target. |
 
 Can be combined with`.alternate(true)` to reverse direction every other
 cycle.
@@ -152,13 +158,13 @@ cycle.
 #[tween(duration = 300, delay = 100, easing = quad_in_out, repeat = "infinite", alternate)]
 ```
 
-| Option     | Type       | Default   | Description                          |
-|------------|------------|-----------|--------------------------------------|
-| `duration` | `u64` (ms) | `300`     | Animation duration in milliseconds.  |
-| `delay`    | `u64` (ms) | `0`       | Delay before each run.               |
-| `easing`   | path       | `linear`  | Easing function (`fn(f32) -> f32`).  |
-| `repeat`   | `"once"` / `"infinite"` / integer | `"once"` | Cycle behaviour.          |
-| `alternate`| flag       | off       | Reverse every other cycle.           |
+| Option      | Type                              | Default  | Description                         |
+|-------------|-----------------------------------|----------|-------------------------------------|
+| `duration`  | `u64` (ms)                        | `300`    | Animation duration in milliseconds. |
+| `delay`     | `u64` (ms)                        | `0`      | Delay before each run.              |
+| `easing`    | path                              | `linear` | Easing function (`fn(f32) -> f32`). |
+| `repeat`    | `"once"` / `"infinite"` / integer | `"once"` | Cycle behaviour.                    |
+| `alternate` | flag                              | off      | Reverse every other cycle.          |
 
 ## Built-in easing functions
 
@@ -197,7 +203,11 @@ impl animate::Interpolate for MyColor {
 
 ## Global clock
 
-`animate` optionally provides a global frame-time:
+Gated behind the `global-clock` feature:
+
+```toml
+animate = { version = "0.6", features = ["global-clock"] }
+```
 
 ```rust
 loop {
