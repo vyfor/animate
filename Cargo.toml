@@ -3,7 +3,7 @@ members = ["animate", "animate-core", "animate-macros"]
 resolver = "3"
 
 [workspace.package]
-version = "0.6.0"
+version = "0.7.0"
 authors = ["vyfor"]
 categories = ["command-line-interface"]
 description = "Animation library"
@@ -13,5 +13,5 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/vyfor/animate"
 
 [workspace.dependencies]
-animate-core = { path = "animate-core", version = "0.6.0" }
-animate-macros = { path = "animate-macros", version = "0.6.0" }
+animate-core = { path = "animate-core", version = "0.7.0" }
+animate-macros = { path = "animate-macros", version = "0.7.0" }
