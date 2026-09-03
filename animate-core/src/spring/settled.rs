@@ -42,4 +42,4 @@ macro_rules! impl_settled_array {
     };
 }
 
-impl_settled_array!(2, 3, 4);
+impl_settled_array!(2, 3, 4, 5, 6);

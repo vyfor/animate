@@ -1,7 +1,7 @@
 #![cfg(feature = "ratatui")]
 
 use crate::interpolate::Interpolate;
-use crate::spring::{Distance, Integrate, SpringParams};
+use crate::spring::{Distance, Integrate, SpringSpec};
 use ratatui::layout::{Constraint, Margin, Rect};
 use ratatui::widgets::Padding;
 
@@ -19,7 +19,13 @@ impl Interpolate for Rect {
 impl Integrate for Rect {
     type Velocity = [f32; 4];
 
-    fn integrate(&self, target: &Rect, velocity: &[f32; 4], params: SpringParams, dt: f32) -> (Rect, [f32; 4]) {
+    fn integrate(
+        &self,
+        target: &Rect,
+        velocity: &[f32; 4],
+        params: SpringSpec,
+        dt: f32,
+    ) -> (Rect, [f32; 4]) {
         let [vx, vy, vw, vh] = *velocity;
 
         let (nx, nvx) = params.step(self.x as f32, target.x as f32, vx, dt);
@@ -62,12 +68,17 @@ impl Interpolate for Margin {
 impl Integrate for Margin {
     type Velocity = [f32; 2];
 
-    fn integrate(&self, target: &Margin, velocity: &[f32; 2], params: SpringParams, dt: f32) -> (Margin, [f32; 2]) {
+    fn integrate(
+        &self,
+        target: &Margin,
+        velocity: &[f32; 2],
+        params: SpringSpec,
+        dt: f32,
+    ) -> (Margin, [f32; 2]) {
         let [vv, vh] = *velocity;
 
         let (nv, nvv) = params.step(self.vertical as f32, target.vertical as f32, vv, dt);
-        let (nh, nvh) =
-            params.step(self.horizontal as f32, target.horizontal as f32, vh, dt);
+        let (nh, nvh) = params.step(self.horizontal as f32, target.horizontal as f32, vh, dt);
 
         (
             Margin {
@@ -102,7 +113,13 @@ impl Interpolate for Padding {
 impl Integrate for Padding {
     type Velocity = [f32; 4];
 
-    fn integrate(&self, target: &Padding, velocity: &[f32; 4], params: SpringParams, dt: f32) -> (Padding, [f32; 4]) {
+    fn integrate(
+        &self,
+        target: &Padding,
+        velocity: &[f32; 4],
+        params: SpringSpec,
+        dt: f32,
+    ) -> (Padding, [f32; 4]) {
         let [vl, vr, vt, vb] = *velocity;
 
         let (nl, nvl) = params.step(self.left as f32, target.left as f32, vl, dt);
@@ -175,7 +192,13 @@ impl Interpolate for Constraint {
 impl Integrate for Constraint {
     type Velocity = [f32; 2];
 
-    fn integrate(&self, target: &Constraint, velocity: &[f32; 2], params: SpringParams, dt: f32) -> (Constraint, [f32; 2]) {
+    fn integrate(
+        &self,
+        target: &Constraint,
+        velocity: &[f32; 2],
+        params: SpringSpec,
+        dt: f32,
+    ) -> (Constraint, [f32; 2]) {
         match (self, target) {
             (Constraint::Percentage(s), Constraint::Percentage(e)) => {
                 let (v, vel) = params.step(*s as f32, *e as f32, velocity[0], dt);

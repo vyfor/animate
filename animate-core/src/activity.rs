@@ -6,10 +6,26 @@ pub struct Activity {
 }
 
 impl Activity {
-    pub const NONE: Self = Self { changed: false, running: false, finished: false };
-    pub const CHANGED: Self = Self { changed: true, running: false, finished: false };
-    pub const RUNNING: Self = Self { changed: false, running: true, finished: false };
-    pub const FINISHED: Self = Self { changed: false, running: false, finished: true };
+    pub const NONE: Self = Self {
+        changed: false,
+        running: false,
+        finished: false,
+    };
+    pub const CHANGED: Self = Self {
+        changed: true,
+        running: false,
+        finished: false,
+    };
+    pub const RUNNING: Self = Self {
+        changed: false,
+        running: true,
+        finished: false,
+    };
+    pub const FINISHED: Self = Self {
+        changed: false,
+        running: false,
+        finished: true,
+    };
 
     #[inline]
     pub const fn changed(self) -> bool {

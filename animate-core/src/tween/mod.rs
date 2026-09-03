@@ -1,6 +1,8 @@
 mod repeat;
+mod spec;
 
 pub use repeat::Repeat;
+pub use spec::TweenSpec;
 
 use crate::easing::Easing;
 use crate::interpolate::Interpolate;
@@ -11,16 +13,12 @@ use std::time::Duration;
 
 #[derive(Debug, Clone)]
 pub struct Tween<T> {
+    pub spec: TweenSpec,
     current: T,
     from: T,
     target: T,
     start: Option<Duration>,
     pending: bool,
-    duration: Duration,
-    delay: Duration,
-    easing: Easing,
-    repeat: Repeat,
-    alternate: bool,
     running: bool,
 }
 
@@ -29,43 +27,48 @@ where
     T: Interpolate + Clone + PartialEq,
 {
     pub fn new(initial: T) -> Self {
+        Self::from_spec(TweenSpec::default(), initial)
+    }
+
+    pub fn from_spec(spec: TweenSpec, initial: T) -> Self {
         Self {
+            spec,
             from: initial.clone(),
             target: initial.clone(),
             current: initial,
             start: None,
             pending: false,
-            duration: Duration::ZERO,
-            delay: Duration::ZERO,
-            easing: crate::easing::linear,
-            repeat: Repeat::Once,
-            alternate: false,
             running: false,
         }
     }
 
+    pub fn spec(mut self, spec: TweenSpec) -> Self {
+        self.spec = spec;
+        self
+    }
+
     pub fn duration(mut self, duration: Duration) -> Self {
-        self.duration = duration;
+        self.spec.duration = duration;
         self
     }
 
     pub fn delay(mut self, delay: Duration) -> Self {
-        self.delay = delay;
+        self.spec.delay = delay;
         self
     }
 
     pub fn easing(mut self, easing: Easing) -> Self {
-        self.easing = easing;
+        self.spec.easing = easing;
         self
     }
 
     pub fn repeat(mut self, repeat: Repeat) -> Self {
-        self.repeat = repeat;
+        self.spec.repeat = repeat;
         self
     }
 
     pub fn alternate(mut self, alternate: bool) -> Self {
-        self.alternate = alternate;
+        self.spec.alternate = alternate;
         self
     }
 
@@ -113,17 +116,24 @@ where
             return Activity::NONE;
         };
 
-        let active = time.elapsed.saturating_sub(start).saturating_sub(self.delay);
+        let active = time
+            .elapsed
+            .saturating_sub(start)
+            .saturating_sub(self.spec.delay);
 
-        if self.duration.is_zero() {
+        if self.spec.duration.is_zero() {
             let changed = self.target != self.current;
             self.current = self.target.clone();
             self.halt();
-            return Activity { changed, running: false, finished: true };
+            return Activity {
+                changed,
+                running: false,
+                finished: true,
+            };
         }
 
-        let total_cycles = self.repeat.cycles();
-        let duration_nanos = self.duration.as_nanos();
+        let total_cycles = self.spec.repeat.cycles();
+        let duration_nanos = self.spec.duration.as_nanos();
         let cycle = (active.as_nanos() / duration_nanos) as u64;
 
         if cycle >= total_cycles {
@@ -131,20 +141,31 @@ where
             let changed = end != self.current;
             self.current = end;
             self.halt();
-            return Activity { changed, running: false, finished: true };
+            return Activity {
+                changed,
+                running: false,
+                finished: true,
+            };
         }
 
-        let frac =
-            (active.as_nanos() % duration_nanos) as f32 / duration_nanos as f32;
-        let t = if self.alternate && cycle % 2 == 1 { 1.0 - frac } else { frac };
-        let value = T::lerp(&self.from, &self.target, (self.easing)(t));
+        let frac = (active.as_nanos() % duration_nanos) as f32 / duration_nanos as f32;
+        let t = if self.spec.alternate && cycle % 2 == 1 {
+            1.0 - frac
+        } else {
+            frac
+        };
+        let value = T::lerp(&self.from, &self.target, (self.spec.easing)(t));
         let changed = value != self.current;
         self.current = value;
-        Activity { changed, running: true, finished: false }
+        Activity {
+            changed,
+            running: true,
+            finished: false,
+        }
     }
 
     fn cycle_end(&self, cycle: u64) -> T {
-        if self.alternate && cycle % 2 == 1 {
+        if self.spec.alternate && cycle % 2 == 1 {
             self.from.clone()
         } else {
             self.target.clone()

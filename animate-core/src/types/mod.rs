@@ -5,6 +5,7 @@ pub mod string;
 pub mod ratatui {
     pub mod color;
     pub mod layout;
+    pub mod style;
 }
 
 #[cfg(feature = "ratatui")]

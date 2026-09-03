@@ -21,7 +21,9 @@ pub struct Clock {
 impl Clock {
     #[inline]
     pub const fn new() -> Self {
-        Self { elapsed: Duration::ZERO }
+        Self {
+            elapsed: Duration::ZERO,
+        }
     }
 
     #[inline]
@@ -32,7 +34,10 @@ impl Clock {
     #[inline]
     pub fn advance(&mut self, delta: Duration) -> Time {
         self.elapsed = self.elapsed.saturating_add(delta);
-        Time { elapsed: self.elapsed, delta }
+        Time {
+            elapsed: self.elapsed,
+            delta,
+        }
     }
 
     #[inline]

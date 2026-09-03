@@ -1,12 +1,12 @@
 mod anim;
 mod distance;
-mod params;
 mod settled;
+mod spec;
 
 pub use anim::Integrate;
 pub use distance::Distance;
-pub use params::SpringParams;
 pub use settled::Settled;
+pub use spec::SpringSpec;
 
 use crate::interpolate::Interpolate;
 use crate::{Activity, Animation, Time};
@@ -15,10 +15,10 @@ use std::ops::Deref;
 
 #[derive(Debug, Clone)]
 pub struct Spring<T: Integrate> {
+    pub spec: SpringSpec,
     current: T,
     target: T,
     velocity: T::Velocity,
-    params: SpringParams,
     running: bool,
 }
 
@@ -27,37 +27,41 @@ where
     T: Integrate + Interpolate + Clone + PartialEq,
 {
     pub fn new(initial: T) -> Self {
+        Self::from_spec(SpringSpec::default(), initial)
+    }
+
+    pub fn from_spec(spec: SpringSpec, initial: T) -> Self {
         Self {
+            spec,
             target: initial.clone(),
             current: initial,
             velocity: T::Velocity::default(),
-            params: SpringParams::default(),
             running: false,
         }
     }
 
+    pub fn spec(mut self, spec: SpringSpec) -> Self {
+        self.spec = spec;
+        self
+    }
+
     pub fn stiffness(mut self, stiffness: f32) -> Self {
-        self.params.stiffness = stiffness;
+        self.spec.stiffness = stiffness;
         self
     }
 
     pub fn damping(mut self, damping: f32) -> Self {
-        self.params.damping = damping;
+        self.spec.damping = damping;
         self
     }
 
     pub fn mass(mut self, mass: f32) -> Self {
-        self.params.mass = mass;
+        self.spec.mass = mass;
         self
     }
 
     pub fn epsilon(mut self, epsilon: f32) -> Self {
-        self.params.epsilon = epsilon;
-        self
-    }
-
-    pub fn params(mut self, params: SpringParams) -> Self {
-        self.params = params;
+        self.spec.epsilon = epsilon;
         self
     }
 
@@ -114,15 +118,14 @@ where
         // assume 16ms deltas
         let steps = ((dt / (1.0 / 60.0)).ceil() as u32).clamp(1, 120); // max 2s, todo: revisit in future.
         let h = dt / steps as f32;
-        let epsilon = self.params.epsilon;
+        let epsilon = self.spec.epsilon;
 
         let mut current = self.current.clone();
         let mut velocity = self.velocity;
         let mut settled = false;
 
         for _ in 0..steps {
-            let (next, next_velocity) =
-                current.integrate(&self.target, &velocity, self.params, h);
+            let (next, next_velocity) = current.integrate(&self.target, &velocity, self.spec, h);
             current = next;
             velocity = next_velocity;
             if current.distance(&self.target) < epsilon && velocity.is_within_epsilon(epsilon) {
@@ -137,11 +140,19 @@ where
             self.current = self.target.clone();
             self.velocity = T::Velocity::default();
             self.running = false;
-            Activity { changed, running: false, finished: true }
+            Activity {
+                changed,
+                running: false,
+                finished: true,
+            }
         } else {
             self.current = current;
             self.velocity = velocity;
-            Activity { changed, running: true, finished: false }
+            Activity {
+                changed,
+                running: true,
+                finished: false,
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-use crate::SpringParams;
+use crate::SpringSpec;
 
 pub trait Integrate: Sized {
     type Velocity: Copy + Default + std::fmt::Debug;
@@ -7,7 +7,7 @@ pub trait Integrate: Sized {
         &self,
         target: &Self,
         velocity: &Self::Velocity,
-        params: SpringParams,
+        params: SpringSpec,
         dt: f32,
     ) -> (Self, Self::Velocity);
 }

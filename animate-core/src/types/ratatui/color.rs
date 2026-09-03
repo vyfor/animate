@@ -1,7 +1,7 @@
 #![cfg(feature = "ratatui")]
 
 use crate::interpolate::Interpolate;
-use crate::spring::{Distance, Integrate, SpringParams};
+use crate::spring::{Distance, Integrate, SpringSpec};
 use ratatui::style::Color;
 
 impl Interpolate for Color {
@@ -21,7 +21,13 @@ impl Interpolate for Color {
 impl Integrate for Color {
     type Velocity = [f32; 3];
 
-    fn integrate(&self, target: &Color, velocity: &[f32; 3], params: SpringParams, dt: f32) -> (Color, [f32; 3]) {
+    fn integrate(
+        &self,
+        target: &Color,
+        velocity: &[f32; 3],
+        params: SpringSpec,
+        dt: f32,
+    ) -> (Color, [f32; 3]) {
         let (cr, cg, cb) = rgb(*self).unwrap_or((0, 0, 0));
         let (tr, tg, tb) = rgb(*target).unwrap_or((0, 0, 0));
         let [vr, vg, vb] = *velocity;
