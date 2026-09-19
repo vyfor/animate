@@ -1,4 +1,7 @@
 use crate::interpolate::Interpolate;
+use crate::math;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 impl Interpolate for String {
     fn lerp(start: &String, end: &String, t: f32) -> String {
@@ -31,10 +34,10 @@ impl Interpolate for String {
         let progress = total * t;
 
         if progress < erase_len as f32 {
-            let remaining = erase_len - progress.round() as usize;
+            let remaining = erase_len - math::round(progress) as usize;
             result.extend(start_chars[shared..shared + remaining].iter());
         } else {
-            let revealed = (progress - erase_len as f32).round() as usize;
+            let revealed = math::round(progress - erase_len as f32) as usize;
             result.extend(end_chars[shared..shared + revealed.min(reveal_len)].iter());
         }
 

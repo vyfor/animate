@@ -1,6 +1,7 @@
 #![cfg(feature = "ratatui")]
 
 use crate::interpolate::Interpolate;
+use crate::math;
 use crate::spring::{Distance, Integrate, SpringSpec};
 use ratatui::layout::{Constraint, Margin, Rect};
 use ratatui::widgets::Padding;
@@ -35,10 +36,10 @@ impl Integrate for Rect {
 
         (
             Rect {
-                x: nx.round() as u16,
-                y: ny.round() as u16,
-                width: nw.round() as u16,
-                height: nh.round() as u16,
+                x: math::round(nx) as u16,
+                y: math::round(ny) as u16,
+                width: math::round(nw) as u16,
+                height: math::round(nh) as u16,
             },
             [nvx, nvy, nvw, nvh],
         )
@@ -52,7 +53,7 @@ impl Distance for Rect {
         let dy = self.y as f32 - other.y as f32;
         let dw = self.width as f32 - other.width as f32;
         let dh = self.height as f32 - other.height as f32;
-        (dx * dx + dy * dy + dw * dw + dh * dh).sqrt()
+        math::sqrt(dx * dx + dy * dy + dw * dw + dh * dh)
     }
 }
 
@@ -82,8 +83,8 @@ impl Integrate for Margin {
 
         (
             Margin {
-                vertical: nv.round() as u16,
-                horizontal: nh.round() as u16,
+                vertical: math::round(nv) as u16,
+                horizontal: math::round(nh) as u16,
             },
             [nvv, nvh],
         )
@@ -95,7 +96,7 @@ impl Distance for Margin {
     fn distance(&self, other: &Margin) -> f32 {
         let dv = self.vertical as f32 - other.vertical as f32;
         let dh = self.horizontal as f32 - other.horizontal as f32;
-        (dv * dv + dh * dh).sqrt()
+        math::sqrt(dv * dv + dh * dh)
     }
 }
 
@@ -129,10 +130,10 @@ impl Integrate for Padding {
 
         (
             Padding {
-                left: nl.round() as u16,
-                right: nr.round() as u16,
-                top: nt.round() as u16,
-                bottom: nb.round() as u16,
+                left: math::round(nl) as u16,
+                right: math::round(nr) as u16,
+                top: math::round(nt) as u16,
+                bottom: math::round(nb) as u16,
             },
             [nvl, nvr, nvt, nvb],
         )
@@ -146,7 +147,7 @@ impl Distance for Padding {
         let dr = self.right as f32 - other.right as f32;
         let dt_ = self.top as f32 - other.top as f32;
         let db = self.bottom as f32 - other.bottom as f32;
-        (dl * dl + dr * dr + dt_ * dt_ + db * db).sqrt()
+        math::sqrt(dl * dl + dr * dr + dt_ * dt_ + db * db)
     }
 }
 
@@ -202,31 +203,31 @@ impl Integrate for Constraint {
         match (self, target) {
             (Constraint::Percentage(s), Constraint::Percentage(e)) => {
                 let (v, vel) = params.step(*s as f32, *e as f32, velocity[0], dt);
-                (Constraint::Percentage(v.round() as u16), [vel, 0.0])
+                (Constraint::Percentage(math::round(v) as u16), [vel, 0.0])
             }
             (Constraint::Ratio(sn, sd), Constraint::Ratio(en, ed)) => {
                 let (n, vn) = params.step(*sn as f32, *en as f32, velocity[0], dt);
                 let (d, vd) = params.step(*sd as f32, *ed as f32, velocity[1], dt);
                 (
-                    Constraint::Ratio(n.round() as u32, d.round() as u32),
+                    Constraint::Ratio(math::round(n) as u32, math::round(d) as u32),
                     [vn, vd],
                 )
             }
             (Constraint::Length(s), Constraint::Length(e)) => {
                 let (v, vel) = params.step(*s as f32, *e as f32, velocity[0], dt);
-                (Constraint::Length(v.round() as u16), [vel, 0.0])
+                (Constraint::Length(math::round(v) as u16), [vel, 0.0])
             }
             (Constraint::Max(s), Constraint::Max(e)) => {
                 let (v, vel) = params.step(*s as f32, *e as f32, velocity[0], dt);
-                (Constraint::Max(v.round() as u16), [vel, 0.0])
+                (Constraint::Max(math::round(v) as u16), [vel, 0.0])
             }
             (Constraint::Min(s), Constraint::Min(e)) => {
                 let (v, vel) = params.step(*s as f32, *e as f32, velocity[0], dt);
-                (Constraint::Min(v.round() as u16), [vel, 0.0])
+                (Constraint::Min(math::round(v) as u16), [vel, 0.0])
             }
             (Constraint::Fill(s), Constraint::Fill(e)) => {
                 let (v, vel) = params.step(*s as f32, *e as f32, velocity[0], dt);
-                (Constraint::Fill(v.round() as u16), [vel, 0.0])
+                (Constraint::Fill(math::round(v) as u16), [vel, 0.0])
             }
             _ => (*target, [0.0, 0.0]),
         }

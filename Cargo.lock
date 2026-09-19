@@ -47,6 +47,7 @@ dependencies = [
 name = "animate-core"
 version = "0.7.0"
 dependencies = [
+ "libm",
  "ratatui",
 ]
 

@@ -11,9 +11,13 @@ repository.workspace = true
 readme = "../README.md"
 
 [dependencies]
+libm = { version = "0.2", default-features = false, optional = true }
 ratatui = { version = "0.30", optional = true }
 
 [features]
-default = []
+default = ["std"]
+std = []
+alloc = []
+libm = ["dep:libm"]
 global-clock = []
 ratatui = ["dep:ratatui"]

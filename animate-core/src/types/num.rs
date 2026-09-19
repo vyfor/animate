@@ -57,14 +57,14 @@ macro_rules! impl_int {
                 #[inline]
                 fn integrate(&self, target: &Self, velocity: &f32, params: SpringSpec, dt: f32) -> (Self, f32) {
                     let (pos, vel) = params.step(*self as f32, *target as f32, *velocity, dt);
-                    (pos.round() as $t, vel)
+                    (crate::math::round(pos) as $t, vel)
                 }
             }
 
             impl Interpolate for $t {
                 #[inline]
                 fn lerp(from: &Self, to: &Self, t: f32) -> Self {
-                    (*from as f32 + (*to as f32 - *from as f32) * t).round() as $t
+                    (crate::math::round(*from as f32 + (*to as f32 - *from as f32) * t)) as $t
                 }
             }
 

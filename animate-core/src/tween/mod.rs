@@ -7,9 +7,9 @@ pub use spec::TweenSpec;
 use crate::easing::Easing;
 use crate::interpolate::Interpolate;
 use crate::{Activity, Animation, Time};
-use std::fmt;
-use std::ops::Deref;
-use std::time::Duration;
+use core::fmt;
+use core::ops::Deref;
+use core::time::Duration;
 
 #[derive(Debug, Clone)]
 pub struct Tween<T> {

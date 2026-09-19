@@ -1,5 +1,7 @@
-pub mod num;
+#[cfg(feature = "alloc")]
 pub mod string;
+
+pub mod num;
 
 #[cfg(feature = "ratatui")]
 pub mod ratatui {

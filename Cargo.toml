@@ -13,5 +13,5 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/vyfor/animate"
 
 [workspace.dependencies]
-animate-core = { path = "animate-core", version = "0.7.0" }
+animate-core = { path = "animate-core", version = "0.7.0", default-features = false }
 animate-macros = { path = "animate-macros", version = "0.7.0" }

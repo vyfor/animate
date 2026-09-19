@@ -1,13 +1,19 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+
 pub mod activity;
 pub mod animation;
 pub mod driver;
 pub mod easing;
 pub mod interpolate;
+pub mod math;
 pub mod spring;
 pub mod time;
 pub mod transition;
 pub mod tween;
 pub mod types;
+
+#[cfg(feature = "alloc")]
+extern crate alloc;
 
 #[cfg(feature = "global-clock")]
 pub mod global_clock;

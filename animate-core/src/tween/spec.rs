@@ -1,7 +1,7 @@
 use crate::easing::{self, Easing};
 use crate::interpolate::Interpolate;
 use crate::tween::{Repeat, Tween};
-use std::time::Duration;
+use core::time::Duration;
 
 #[derive(Clone, Copy, Debug)]
 pub struct TweenSpec {
@@ -16,7 +16,7 @@ impl PartialEq for TweenSpec {
     fn eq(&self, other: &Self) -> bool {
         self.duration == other.duration
             && self.delay == other.delay
-            && std::ptr::fn_addr_eq(self.easing, other.easing)
+            && core::ptr::fn_addr_eq(self.easing, other.easing)
             && self.repeat == other.repeat
             && self.alternate == other.alternate
     }

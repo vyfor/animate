@@ -1,7 +1,7 @@
 use crate::SpringSpec;
 
 pub trait Integrate: Sized {
-    type Velocity: Copy + Default + std::fmt::Debug;
+    type Velocity: Copy + Default + core::fmt::Debug;
 
     fn integrate(
         &self,

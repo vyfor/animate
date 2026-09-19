@@ -10,8 +10,8 @@ pub use spec::SpringSpec;
 
 use crate::interpolate::Interpolate;
 use crate::{Activity, Animation, Time};
-use std::fmt;
-use std::ops::Deref;
+use core::fmt;
+use core::ops::Deref;
 
 #[derive(Debug, Clone)]
 pub struct Spring<T: Integrate> {
@@ -116,7 +116,7 @@ where
         }
 
         // assume 16ms deltas
-        let steps = ((dt / (1.0 / 60.0)).ceil() as u32).clamp(1, 120); // max 2s, todo: revisit in future.
+        let steps = (crate::math::ceil(dt / (1.0 / 60.0)) as u32).clamp(1, 120); // max 2s, todo: revisit in future.
         let h = dt / steps as f32;
         let epsilon = self.spec.epsilon;
 

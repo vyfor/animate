@@ -3,8 +3,8 @@ use crate::spring::{Distance, Integrate, Settled, Spring};
 use crate::transition::Transition;
 use crate::tween::Tween;
 use crate::{Activity, Animation, Time};
-use std::fmt;
-use std::ops::Deref;
+use core::fmt;
+use core::ops::Deref;
 
 #[derive(Debug, Clone)]
 pub enum Driver<T: Integrate> {

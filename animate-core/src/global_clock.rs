@@ -1,6 +1,6 @@
 use crate::{Clock, Time};
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::Duration;
+use core::sync::atomic::{AtomicU64, Ordering};
+use core::time::Duration;
 
 static FRAME_TIME: AtomicU64 = AtomicU64::new(0);
 static LAST_DELTA: AtomicU64 = AtomicU64::new(0);
