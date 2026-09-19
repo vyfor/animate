@@ -3,15 +3,15 @@ members = ["animate", "animate-core", "animate-macros"]
 resolver = "3"
 
 [workspace.package]
-version = "0.7.0"
+version = "0.8.0"
 authors = ["vyfor"]
-categories = ["command-line-interface"]
-description = "Animation library"
+categories = ["command-line-interface", "no-std"]
+description = "Animation library with physics-based springs, tweens and no_std compatibility"
 edition = "2024"
 keywords = ["terminal", "tui", "cli", "animation", "ratatui"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/vyfor/animate"
 
 [workspace.dependencies]
-animate-core = { path = "animate-core", version = "0.7.0", default-features = false }
-animate-macros = { path = "animate-macros", version = "0.7.0" }
+animate-core = { path = "animate-core", version = "0.8.0", default-features = false }
+animate-macros = { path = "animate-macros", version = "0.8.0" }
