@@ -2,7 +2,7 @@ use crate::driver::Driver;
 use crate::interpolate::Interpolate;
 use crate::spring::{Distance, Integrate, Settled, SpringSpec};
 use crate::tween::TweenSpec;
-use std::time::Duration;
+use core::time::Duration;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Transition {

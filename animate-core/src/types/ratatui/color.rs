@@ -1,6 +1,7 @@
 #![cfg(feature = "ratatui")]
 
 use crate::interpolate::Interpolate;
+use crate::math;
 use crate::spring::{Distance, Integrate, SpringSpec};
 use ratatui::style::Color;
 
@@ -36,7 +37,7 @@ impl Integrate for Color {
         let (ng, nvg) = params.step(cg as f32, tg as f32, vg, dt);
         let (nb, nvb) = params.step(cb as f32, tb as f32, vb, dt);
 
-        let clamp_u8 = |v: f32| v.clamp(0.0, 255.0).round() as u8;
+        let clamp_u8 = |v: f32| math::round(v.clamp(0.0, 255.0)) as u8;
         (
             Color::Rgb(clamp_u8(nr), clamp_u8(ng), clamp_u8(nb)),
             [nvr, nvg, nvb],
@@ -52,7 +53,7 @@ impl Distance for Color {
                 let dr = r1 as f32 - r2 as f32;
                 let dg = g1 as f32 - g2 as f32;
                 let db = b1 as f32 - b2 as f32;
-                (dr * dr + dg * dg + db * db).sqrt()
+                math::sqrt(dr * dr + dg * dg + db * db)
             }
             _ => 0.0,
         }

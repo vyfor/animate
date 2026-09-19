@@ -35,7 +35,7 @@ macro_rules! impl_settled_array {
             impl Settled for [f32; $n] {
                 #[inline]
                 fn magnitude(&self) -> f32 {
-                    self.iter().map(|v| v * v).sum::<f32>().sqrt()
+                    crate::math::sqrt(self.iter().map(|v| v * v).sum::<f32>())
                 }
             }
         )*

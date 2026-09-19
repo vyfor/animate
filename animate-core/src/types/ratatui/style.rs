@@ -1,6 +1,7 @@
 #![cfg(feature = "ratatui")]
 
 use crate::interpolate::Interpolate;
+use crate::math;
 use crate::spring::{Distance, Integrate, SpringSpec};
 use ratatui::style::{Color, Style};
 
@@ -91,6 +92,6 @@ impl Distance for Style {
             (Some(a), Some(b)) => a.distance(&b),
             _ => 0.0,
         };
-        (d_fg * d_fg + d_bg * d_bg).sqrt()
+        math::sqrt(d_fg * d_fg + d_bg * d_bg)
     }
 }

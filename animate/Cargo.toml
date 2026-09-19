@@ -11,7 +11,7 @@ repository.workspace = true
 readme = "../README.md"
 
 [dependencies]
-animate-core = { workspace = true }
+animate-core = { workspace = true, default-features = false }
 animate-macros = { workspace = true, optional = true }
 ratatui = { version = "0.30", optional = true }
 
@@ -21,8 +21,11 @@ crossterm = "0.29"
 criterion = "0.8"
 
 [features]
-default = []
+default = ["std"]
 macros = ["dep:animate-macros"]
+std = ["animate-core/std", "animate-core/alloc"]
+alloc = ["animate-core/alloc", "animate-core/libm"]
+libm = ["animate-core/libm"]
 global-clock = ["animate-core/global-clock"]
 ratatui = ["dep:ratatui", "animate-core/ratatui"]
 

@@ -48,7 +48,7 @@ impl Activity {
     }
 }
 
-impl std::ops::BitOr for Activity {
+impl core::ops::BitOr for Activity {
     type Output = Self;
 
     #[inline]
@@ -61,7 +61,7 @@ impl std::ops::BitOr for Activity {
     }
 }
 
-impl std::ops::BitOrAssign for Activity {
+impl core::ops::BitOrAssign for Activity {
     #[inline]
     fn bitor_assign(&mut self, rhs: Self) {
         *self = *self | rhs;

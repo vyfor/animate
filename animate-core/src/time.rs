@@ -1,4 +1,4 @@
-use std::time::Duration;
+use core::time::Duration;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Time {

@@ -12,6 +12,7 @@ Lightweight Rust animation library with tweening and physics-based springs
 - **Repeat modes**: `Once`, `Times(n)`, `Infinite`, with optional alternating.
 - **Easing**: Built-in and custom easing functions.
 - **Physics-based**: Supports spring animations.
+- **`no_std`** compatible: Works in `no_std` environments with the `alloc` feature.
 - **Terminal-friendly**: Fully integrated into [**Kursor**](https://github.com/vyfor/kursor). Additionally, interpolators for [**Ratatui**](https://github.com/ratatui/ratatui) types, gated behind the `ratatui` feature flag.
 
 ## Installation
